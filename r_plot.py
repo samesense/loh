@@ -3,7 +3,7 @@ import os, sys
 def do_file(filename):
     new_file = filename.split('.')[-1] + '.png'
     with open('rtmp', 'w') as f:
-        f.write("plots/png('" + new_file + "')\n")
+        f.write("png('plots/" + new_file + "')\n")
         f.write('library(quantsmooth)\n')
         f.write("MapInfo<-read.delim('working/" + filename + "',header=TRUE,sep='\t')\n")
         f.write("chrompos<-prepareGenomePlot(MapInfo[,1:2],paintCytobands=TRUE,organism='hsa')\n")
