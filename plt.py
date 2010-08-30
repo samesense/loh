@@ -4,7 +4,6 @@ import re
 def get_freqs(call, str_length, str):
     """Count minor allele freq by matching . or ,"""
 
-
     count = 0
     for s in str:
         if s == '.' or s == ',':
@@ -31,7 +30,7 @@ with open('data/perry.txt') as f:
             idx += 5
 
 for s in sample2alleles:
-    ofile = '/home/perry/Dropbox/chr_pos.' + s
+    ofile = 'working/chr_pos.' + s
     with open(ofile, 'w') as o:
         o.write('CHR\tMapInfo\tMinFreq\n')
         for chr_pos in sample2alleles[s]:
