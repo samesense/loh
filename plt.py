@@ -1,22 +1,24 @@
 """Parse exome data to find minor allele frequency.
    Only look at calls w/ 8x coverage or more.
    Ignore strange chromosomes (including M).
+   Output is in BED format 
+   (http://genome.ucsc.edu/goldenPath/help/customTrack.html#BED).
 """
 from collections import defaultdict
-import os
+import os, math
 
 def get_freqs(call, str_length, str):
-    """Count minor allele freq by matching . or ,"""
+    """Count minor allele freq by matching . or ,
+       Return difference between major and minor"""
 
     count = 0
     for s in str:
         if s == '.' or s == ',':
             count += 1
-    freq = min([float(count)/float(str_length),
-                float(str_length-count)/float(str_length)])
-    #print call, str_length, str, freq
-    return freq
+    # I think Murim's just taking the abs difference in freq counts
+    return abs(float(2*count-str_length)/float(str_length))
 
+BED_locations = {}
 data_dir = 'data/exome/'
 for afile in os.listdir(data_dir):
     if not 'sun' in afile: # ignore exome.aa_chg.sun b/c is it redundant
@@ -47,15 +49,24 @@ for afile in os.listdir(data_dir):
                         sample2alleles[s][chr + '.' + pos] = get_freqs(sp[idx],
                                                                        coverage,
                                                                        sp[idx+3])
+                        # keep track of genome locations
+                        # for later conversion
+                        BED_chr = sp[2]
+                        BED_locations[BED_chr + ':' + pos + ':' + str(int(pos)+1)] = True
                     idx += 5
         outdir = os.path.join('working',
                               afile.replace('.', '_'))
         os.system('mkdir -p ' + outdir)
         for s in sample2alleles:
-            ofile = os.path.join(outdir, 'chr_pos.' + s)
+            ofile = os.path.join(outdir, 'hg19_chr_pos.' + s)
             with open(ofile, 'w') as o:
                 o.write('CHR\tMapInfo\tMinFreq\n')
                 for chr_pos in sample2alleles[s]:
                     chr, pos = chr_pos.split('.')
                     allele_freq = sample2alleles[s][chr_pos]
                     o.write(chr + '\t' + pos + '\t' + str(allele_freq) + '\n')
+with open('working/BED_pos_hg19', 'w') as f:
+    for position in BED_locations:
+        chr, st, end = position.split(':')
+        f.write(chr + '\t' + st + '\t' + end + '\n')
+    
