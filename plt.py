@@ -28,7 +28,9 @@ for afile in os.listdir(data_dir):
                     chr = sp[2].split('chr')[1]
                     pos = sp[3]
                     # keep if using at least 8x coverage
-                    if int(sp[idx+2]) >= 8:
+                    # and if the chr is standard
+                    # i.e. no 6_cox_hap2
+                    if int(sp[idx+2]) >= 8 and '_' not in chr:
                         sample2alleles[s][chr + '.' + pos] = get_freqs(sp[idx],
                                                                        sp[idx+2],
                                                                        sp[idx+3])
