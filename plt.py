@@ -1,3 +1,7 @@
+"""Parse exome data to find minor allele frequency.
+   Only look at calls w/ 8x coverage or more.
+   Ignore strange chromosomes (including M).
+"""
 from collections import defaultdict
 import os
 
@@ -10,7 +14,7 @@ def get_freqs(call, str_length, str):
             count += 1
     freq = min([float(count)/float(str_length),
                 float(float(str_length)-count)/float(str_length)])
-    print call, str_length, str, freq
+    #print call, str_length, str, freq
     return freq
 
 data_dir = 'data/exome/'
@@ -30,7 +34,13 @@ for afile in os.listdir(data_dir):
                     # keep if using at least 8x coverage
                     # and if the chr is standard
                     # i.e. no 6_cox_hap2
-                    if int(sp[idx+2]) >= 8 and '_' not in chr:
+                    if int(sp[idx+2]) >= 8 and '_' not in chr and 'M' not in chr:
+                        if 'XY' == chr:
+                            chr = '100'
+                        elif 'X' == chr:
+                            chr = '98'
+                        elif 'Y' == chr:
+                            chr = '99'
                         sample2alleles[s][chr + '.' + pos] = get_freqs(sp[idx],
                                                                        sp[idx+2],
                                                                        sp[idx+3])
