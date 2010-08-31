@@ -5,13 +5,13 @@ from collections import defaultdict
 
 random.seed()
 
-def mk_input(plt_output):
+def mk_input(plt_output, title):
     """Make input for a full chromosome plot.
        Make new mutation positions, and put
        lines for chormosomes."""
 
-    rfile = 'tmpr' + str(random.randint(0,1000))
-    rlines = 'tmprlines' + str(random.randint(0,1000))
+    rfile = 'tmpr' + title + str(random.randint(0,1000))
+    rlines = 'tmprlines' + title + str(random.randint(0,1000))
     chr2posLs = defaultdict(list)
     with open(plt_output) as f:
         f.readline()
@@ -31,24 +31,41 @@ def mk_input(plt_output):
                     new_counter += 1
     return (rfile, rlines)
 
-def mk_r(points_input, lines_input, rfile, plot_file):
+def mk_r(points_input, lines_input, rfile, plot_file, title):
     """Add code to rfile to make a plot"""
     
     rfile.write("png('" + plot_file + "')\n")
     rfile.write("points <- read.delim('"
                 + points_input + "',header=FALSE,sep='\\t')\n")
-    rfile.write("plot(points,pch='.')\n")
+    rfile.write("plot(points,pch='.',main='" + title + "')\n")
     rfile.write("v_line <- read.delim('"
                 + lines_input + "',header=FALSE,sep='\\t')\n") 
     rfile.write("for (idx in 1:dim(v_line)[1]) {abline(v=v_line[idx,],lty=2)}\n")
     rfile.write('dev.off()\n')
 
+working_dir = 'working'
+plot_dir = 'plots'
 rinput = 'rtmp'
 rm_ls = [rinput]
-rfile, rlines = mk_input('working/exome_aa_chg/hg19_chr_pos.yusik')
-rm_ls.append(rfile)
-rm_ls.append(rlines)
 with open(rinput, 'w') as rout:
-    mk_r(rfile, rlines, rout, 'tmp_plt.png')
+    for dir in os.listdir(working_dir):
+        if 'exome' in dir:
+            subdir = os.path.join(working_dir, dir)
+            new_plot_dir = os.path.join(plot_dir, dir)
+            os.system('mkdir -p ' + new_plot_dir)
+            for filename in os.listdir(subdir):
+                if 'hg19' in filename:
+                    title = dir + ':' + filename.split('.')[-1]
+                    path = os.path.join(subdir,
+                                        filename)
+                    rfile, rlines = mk_input(path, title.replace(':', '_'))
+                    rm_ls.append(rfile)
+                    rm_ls.append(rlines)
+                    mk_r(rfile, rlines, rout, 
+                         os.path.join(new_plot_dir,
+                                      filename.split('.')[-1] 
+                                      + '.summary.png'),
+                         title)
 os.system('R --vanilla < rtmp')
 os.system('rm ' + ' '.join(rm_ls))
+

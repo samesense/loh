@@ -1,6 +1,8 @@
 """Call R functions to make LOH plots"""
 import os, sys, random
 
+random.seed()
+
 def write_file(path, filename, plot_dir, title, rfile):
     """Accumulate R commands in one file. Use for making all plots at once"""
 
