@@ -13,7 +13,7 @@ def get_freqs(call, str_length, str):
         if s == '.' or s == ',':
             count += 1
     freq = min([float(count)/float(str_length),
-                float(float(str_length)-count)/float(str_length)])
+                float(str_length-count)/float(str_length)])
     #print call, str_length, str, freq
     return freq
 
@@ -31,10 +31,13 @@ for afile in os.listdir(data_dir):
                 for s in samples:
                     chr = sp[2].split('chr')[1]
                     pos = sp[3]
+                    quality = float(sp[idx+1])
+                    coverage = int(sp[idx+2])
+                    # use quality > 100
                     # keep if using at least 8x coverage
                     # and if the chr is standard
                     # i.e. no 6_cox_hap2
-                    if int(sp[idx+2]) >= 8 and '_' not in chr and 'M' not in chr:
+                    if coverage >= 8 and '_' not in chr and 'M' not in chr and quality > float(100):
                         if 'XY' == chr:
                             chr = '100'
                         elif 'X' == chr:
@@ -42,7 +45,7 @@ for afile in os.listdir(data_dir):
                         elif 'Y' == chr:
                             chr = '99'
                         sample2alleles[s][chr + '.' + pos] = get_freqs(sp[idx],
-                                                                       sp[idx+2],
+                                                                       coverage,
                                                                        sp[idx+3])
                     idx += 5
         outdir = os.path.join('working',
