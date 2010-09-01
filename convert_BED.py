@@ -36,18 +36,20 @@ def mk_map():
             line19 = hg19.readline()
             line18 = hg18.readline()
             while line19 != '':
-                if line18.strip():
-                    chr19, pos19, junk = line19.split('\t')
-                    if chr19 + ':' + pos19 not in unmapped:
-                        chr18, pos18, junk = line18.split('\t')
+                chr19, pos19, junk = line19.split('\t')
+                if chr19 + ':' + pos19 not in unmapped:
+                    chr18, pos18, junk = line18.split('\t')
+                    if '_' not in chr18:
                         chr19 = transform_chr(chr19)
                         chr18 = transform_chr(chr18)
                         if chr19 != chr18:
                             sys.stderr.write('conversion problem '
-                                             + chr19 + ' ' + chr18 + '\n')
+                                             + line19 + line18)
+                            sys.exit(-1)
                         map[chr19 + ':' + pos19] = pos18
+                    line18 = hg18.readline()
                 line19 = hg19.readline()
-                line18 = hg18.readline()
+                
     return map
 
 def rewrite_file(file, new_file, map):
