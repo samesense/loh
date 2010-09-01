@@ -19,25 +19,25 @@ def mk_input(plt_output, title):
             (chr, pos, val) = [x.strip() for x in line.split('\t')]
             chr2posLs[chr].append((int(pos), val))
     new_counter = 0
-    chrs = chr2posLs.keys()
+    chrs = [int(x) for x in chr2posLs.keys()]
     chrs.sort()
     with open(rlines, 'w') as input_lines:
         with open(rfile, 'w') as input_outfile:
             for chr in chrs:
                 input_lines.write(str(new_counter) + '\n')
-                chr2posLs[chr].sort()
-                for pos, val in chr2posLs[chr]:
+                chr2posLs[str(chr)].sort()
+                for pos, val in chr2posLs[str(chr)]:
                     input_outfile.write(str(new_counter) + '\t' + val + '\n')
                     new_counter += 1
     return (rfile, rlines)
 
-def mk_r(points_input, lines_input, rfile, plot_file, title):
+def mk_r(points_input, lines_input, rfile, plot_file, title, col):
     """Add code to rfile to make a plot"""
     
     rfile.write("png('" + plot_file + "')\n")
     rfile.write("points <- read.delim('"
                 + points_input + "',header=FALSE,sep='\\t')\n")
-    rfile.write("plot(points,pch='o',col='red',xaxt='n',xlab='',ylab='',main='" + title + "')\n")
+    rfile.write("plot(points,ylim=c(0,1),pch='o',col='" + col + "',xaxt='n',xlab='',ylab='',main='" + title + "')\n")
     rfile.write("v_line <- read.delim('"
                 + lines_input + "',header=FALSE,sep='\\t')\n") 
     rfile.write("for (idx in 1:dim(v_line)[1]) {abline(v=v_line[idx,],lty=2)}\n")
@@ -64,11 +64,17 @@ with open(rinput, 'w') as rout:
                     rfile, rlines = mk_input(path, title.replace(':', '_'))
                     rm_ls.append(rfile)
                     rm_ls.append(rlines)
+                    if 'N' in filename:
+                        col = 'blue'
+                    elif 'P' in filename and 'L' not in filename:
+                        col = 'blue'
+                    else:
+                        col = 'red'
                     mk_r(rfile, rlines, rout, 
                          os.path.join(new_plot_dir,
                                       filename.split('.')[-1] 
                                       + '.' + file_type + '.summary.png'),
-                         title)
+                         title, col)
 os.system('R --vanilla < rtmp')
 os.system('rm ' + ' '.join(rm_ls))
 for dir in os.listdir(working_dir):
