@@ -5,10 +5,12 @@ import os
 def plt():
     """Parse data and mk LOH plots"""
 
-    sh('python plt.py')
-    sh('python summary_plt.py')
-    sh('./liftOver working/BED_pos_hg19 data/ucsc/hg19ToHg18.over.chain working/BED_pos_hg18 working/liftOver_unmapped')
-    sh('convert_BED.py')
+    #sh('python plt.py')
+    #sh('python summary_plot.py')
+    sh('./liftOver working/BED_pos_hg19 data/ucsc/hg19ToHg18.over.chain working/BED_pos_hg18 working/liftOver_unmapped_hg19tohg18')
+    sh('./liftOver working/BED_pos_hg18 data/ucsc/hg18ToHg17.over.chain working/BED_pos_hg17 working/liftOver_unmapped_hg18tohg17')
+    sh('python convert_BED.py hg19 hg18')
+    sh('python convert_BED.py hg18 hg17')
     sh('python r_plot.py')
     
 #     # pair up normal and cancer

@@ -43,10 +43,11 @@ with open(rfile, 'w') as rfile:
             new_plot_dir = os.path.join(plot_dir, dir)
             os.system('mkdir -p ' + new_plot_dir)
             for filename in os.listdir(subdir):
-                title = dir + ':' + filename.split('.')[-1]
-                path = os.path.join(subdir,
-                                    filename)
-                write_file(path, filename, new_plot_dir, title, rfile)
+                if 'hg19' in filename:
+                    title = dir + ':' + filename.split('.')[-1]
+                    path = os.path.join(subdir,
+                                        filename)
+                    write_file(path, filename, new_plot_dir, title, rfile)
 os.system('R --vanilla < rtmp')
 os.system('rm rtmp')
 

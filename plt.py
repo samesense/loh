@@ -16,7 +16,7 @@ def get_freqs(call, str_length, str):
         if s == '.' or s == ',':
             ref_count += 1
     # I think Murim's just taking the abs difference in freq counts
-    return abs(2*ref_count-str_length)
+    return float(abs(2*ref_count-str_length))/float(str_length)
 
 BED_locations = {}
 data_dir = 'data/exome/'
