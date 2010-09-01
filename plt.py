@@ -7,6 +7,16 @@
 from collections import defaultdict
 import os, math
 
+def get_hets():
+    """Get heterozygous SNPs in normal"""
+
+    hets = {}
+    with open('working/het_snps') as f:
+        for line in f:
+            chr, pos = line.strip().split('\t')
+            hets[chr + ':' + pos] = True
+    return hets
+
 def get_freqs(call, str_length, str):
     """Count minor allele freq by matching . or ,
        Return difference between major and minor"""
@@ -16,10 +26,15 @@ def get_freqs(call, str_length, str):
         if s == '.' or s == ',':
             ref_count += 1
     # I think Murim's just taking the abs difference in freq counts
-    return float(abs(2*ref_count-str_length))/float(str_length)
+    lower_count = str_length - ref_count
+    min_c = min([ref_count, lower_count])
+    max_c = max([ref_count, lower_count])
+    return float(min_c)/float(max_c)
+    #return abs(float(0.5) - float(lower_count)/float(str_length))
 
 BED_locations = {}
 data_dir = 'data/exome/'
+hets = get_hets()
 for afile in os.listdir(data_dir):
     if not 'sun' in afile: # ignore exome.aa_chg.sun b/c is it redundant
         file = os.path.join(data_dir, afile)
@@ -39,7 +54,7 @@ for afile in os.listdir(data_dir):
                     # keep if using at least 8x coverage
                     # and if the chr is standard
                     # i.e. no 6_cox_hap2
-                    if coverage >= 8 and '_' not in chr and 'M' not in chr and quality > float(100):
+                    if chr+':'+pos in hets and coverage >= 8 and '_' not in chr and 'M' not in chr and quality > float(100):
                         if 'XY' == chr:
                             chr = '100'
                         elif 'X' == chr:
