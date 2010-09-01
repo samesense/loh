@@ -1,15 +1,11 @@
 """Recreate Murim's plot for paired normal/cancer samples."""
-import os, sys
+import os, sys, global_settings
 from collections import defaultdict
 
 bases = ('A', 'T', 'G', 'C')
 
 # cancer, normal
-pairs = (('yuaker', 'yuakerN'),
-         ('yuiri', 'yuiriN'),
-         ('yuiskia', 'yuiskiaN'),
-         ('yunoca091225T', 'yunoca091283P'),
-         ('yusan', 'yusanN'))
+pairs = global_settings.pairs
 cancer2normal = {}
 for cancer, normal in pairs:
     cancer2normal[cancer] = normal
