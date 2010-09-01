@@ -37,7 +37,7 @@ def mk_r(points_input, lines_input, rfile, plot_file, title):
     rfile.write("png('" + plot_file + "')\n")
     rfile.write("points <- read.delim('"
                 + points_input + "',header=FALSE,sep='\\t')\n")
-    rfile.write("plot(points,pch='.',main='" + title + "')\n")
+    rfile.write("plot(points,pch='.',xaxt='n',xlab='',ylab='',main='" + title + "')\n")
     rfile.write("v_line <- read.delim('"
                 + lines_input + "',header=FALSE,sep='\\t')\n") 
     rfile.write("for (idx in 1:dim(v_line)[1]) {abline(v=v_line[idx,],lty=2)}\n")
@@ -68,4 +68,9 @@ with open(rinput, 'w') as rout:
                          title)
 os.system('R --vanilla < rtmp')
 os.system('rm ' + ' '.join(rm_ls))
-
+for dir in os.listdir(working_dir):
+    if 'exome' in dir:
+        new_plot_dir = os.path.join(plot_dir, dir)
+        os.system('montage -geometry 500 -quality 100 '
+                  + os.path.join(new_plot_dir, '*summary*') + ' '
+                  + os.path.join(new_plot_dir, 'ALL.png'))

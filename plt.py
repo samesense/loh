@@ -11,12 +11,12 @@ def get_freqs(call, str_length, str):
     """Count minor allele freq by matching . or ,
        Return difference between major and minor"""
 
-    count = 0
+    ref_count = 0
     for s in str:
         if s == '.' or s == ',':
-            count += 1
+            ref_count += 1
     # I think Murim's just taking the abs difference in freq counts
-    return abs(float(2*count-str_length)/float(str_length))
+    return abs(2*ref_count-str_length)
 
 BED_locations = {}
 data_dir = 'data/exome/'
