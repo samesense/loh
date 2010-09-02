@@ -1,4 +1,5 @@
-"""Recreate Murim's plot for paired normal/cancer samples."""
+"""Recreate Murim's plot for paired normal/cancer samples.
+   Only use normal->cancer het->homo calls."""
 import os, sys, global_settings
 from collections import defaultdict
 
@@ -14,6 +15,23 @@ cancers = [x[0] for x in pairs]
 all = []
 for n in normals: all.append(n)
 for c in cancers: all.append(c)
+
+def get_loh_mutations():
+    """Load normal->cancer het->homo mutations found by loh.py.
+       Make a {} of exome_type to chr:pos to normal samples"""
+
+    exome2mutations = {}
+    with open('working/loh_mutations') as f:
+        for line in f:
+            exome, chr, pos, normal, cancer, n_call, c_call = line.strip().split('\t')
+            if not exome in exome2mutations:
+                exome2mutations[exome] = {}
+            if not normal in exome2mutations[exome]:
+                exome2mutations[exome][normal] = {}
+            loc = chr+':'+pos
+            exome2mutations[exome][normal][loc] = True
+
+    return exome2mutations
 
 def init_zero():
     return 0
@@ -99,8 +117,13 @@ def get_freq(ref_allele, call, str_length, str, normal_freq_and_base):
     elif normal_base == call:
         return abs(normal_freq - float(ref_count)/float(str_length))
     else:
-        return float(0)
+        return normal_freq/float(str_length)
 
+# this method relies on cancer call being
+# different from the ref
+# I need to add cases where it is the same
+# and thus not present in the file
+exome2mutations = get_loh_mutations()
 data_dir = 'data/exome/'
 for afile in os.listdir(data_dir):
     if not 'sun' in afile: # ignore exome.aa_chg.sun b/c is it redundant
@@ -112,11 +135,11 @@ for afile in os.listdir(data_dir):
                 sp = line.split('\t')
                 samples = sp[8].split('-')
                 idx = 17
+                chr = sp[2].split('chr')[1]
+                pos = sp[3]
                 for s in samples:
                     norm_sample = get_norm_sample(s)
-                    if norm_sample:
-                        chr = sp[2].split('chr')[1]
-                        pos = sp[3]
+                    if norm_sample and chr+':'+pos in exome2mutations[afile][norm_sample]:
                         quality = float(sp[idx+1])
                         coverage = int(sp[idx+2])
                         ref_allele = sp[10]
@@ -154,11 +177,12 @@ for afile in os.listdir(data_dir):
             with open(ofile, 'w') as o:
                 o.write('CHR\tMapInfo\tDiff\n')
                 for chr_pos in normal2het[s]:
-                    chr, pos = chr_pos.split(':')
-                    freq, base = normal2het[s][chr_pos]
-                    allele_freq = abs(float(.5) - freq)
-                    o.write(chr + '\t' + pos + '\t' + str(allele_freq) + '\n')
-
+                    if chr_pos in exome2mutations[afile][s]:
+                        chr, pos = chr_pos.split(':')
+                        freq, base = normal2het[s][chr_pos]
+                        allele_freq = abs(float(.5) - freq)
+                        o.write(chr + '\t' + pos + '\t' + str(allele_freq) + '\n')
+                        
 
 
 

@@ -2,6 +2,14 @@ from paver.easy import *
 import os
 
 @task
+def loh():
+    """Make Murim LOH plot"""
+
+    sh('python loh.py')
+    sh('python murim_plot.py > working/loh_percents')
+    sh('python summary_plot.py hg19_murim')
+
+@task
 def plt():
     """Parse data and mk LOH plots"""
 
