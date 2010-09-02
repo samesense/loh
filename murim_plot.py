@@ -3,8 +3,6 @@
 import os, sys, global_settings
 from collections import defaultdict
 
-bases = ('A', 'T', 'G', 'C')
-
 # cancer, normal
 pairs = global_settings.pairs
 cancer2normal = {}
@@ -44,7 +42,7 @@ def get_normal_val(ref_allele, str_length, str):
     for s in str:
         if s == '.' or s == ',':
             ref_count += 1
-        elif s.upper() in bases:
+        elif s.upper() in global_settings.homo_bases:
             base_counts[s.upper()] += 1
     base_count_ls = []
     for base in base_counts:
@@ -97,27 +95,29 @@ def get_norm_sample(sample):
        Otherwise return False."""
 
     if sample in cancer2normal:
-        return cancer2normal[cancer]
+        return cancer2normal[sample]
     else:
         return False
 
-def get_freq(ref_allele, call, str_length, str, normal_freq_and_base):
+def get_freq(ref_allele, call, str_length, call_str, normal_freq_and_base, chr, pos, normal_name, exome_type):
     """Take diff btwn normal_base_freq and cancer"""
 
     ref_count = 0
     base_counts = defaultdict(init_zero)
-    for s in str:
+    for s in call_str:
         if s == '.' or s == ',':
             ref_count += 1
-        elif s.upper() in bases:
+        elif s.upper() in global_settings.homo_bases:
             base_counts[s.upper()] += 1
     normal_freq, normal_base = normal_freq_and_base
+    
+    tumor_freq = float(0)
     if normal_base in base_counts:
-        return abs(normal_freq - float(base_counts[normal_base])/float(str_length))
+        tumor_freq = float(base_counts[normal_base])/float(str_length)
     elif normal_base == call:
-        return abs(normal_freq - float(ref_count)/float(str_length))
-    else:
-        return normal_freq/float(str_length)
+        tumor_freq = float(ref_count)/float(str_length)
+    print str(normal_freq) + '\t' + str(tumor_freq) + '\t' + chr + '\t' + pos + '\t' + normal_name + '\t' + exome_type
+    return abs(normal_freq - tumor_freq)
 
 # this method relies on cancer call being
 # different from the ref
@@ -139,7 +139,7 @@ for afile in os.listdir(data_dir):
                 pos = sp[3]
                 for s in samples:
                     norm_sample = get_norm_sample(s)
-                    if norm_sample and chr+':'+pos in exome2mutations[afile][norm_sample]:
+                    if norm_sample:# and chr+':'+pos in exome2mutations[afile][norm_sample]:
                         quality = float(sp[idx+1])
                         coverage = int(sp[idx+2])
                         ref_allele = sp[10]
@@ -159,7 +159,9 @@ for afile in os.listdir(data_dir):
                                                                           sp[idx],
                                                                           coverage,
                                                                           sp[idx+3],
-                                                                          normal2het[norm_sample][chr+':'+pos])
+                                                                          normal2het[norm_sample][chr+':'+pos],
+                                                                          chr, pos, norm_sample,
+                                                                          afile.split('/')[-1])
                     idx += 5
         outdir = os.path.join('working',
                               afile.replace('.', '_'))
@@ -177,11 +179,11 @@ for afile in os.listdir(data_dir):
             with open(ofile, 'w') as o:
                 o.write('CHR\tMapInfo\tDiff\n')
                 for chr_pos in normal2het[s]:
-                    if chr_pos in exome2mutations[afile][s]:
-                        chr, pos = chr_pos.split(':')
-                        freq, base = normal2het[s][chr_pos]
-                        allele_freq = abs(float(.5) - freq)
-                        o.write(chr + '\t' + pos + '\t' + str(allele_freq) + '\n')
+                    #if chr_pos in exome2mutations[afile][s]:
+                    chr, pos = chr_pos.split(':')
+                    freq, base = normal2het[s][chr_pos]
+                    allele_freq = abs(float(.5) - freq)
+                    o.write(chr + '\t' + pos + '\t' + str(allele_freq) + '\n')
                         
 
 

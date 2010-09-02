@@ -5,7 +5,7 @@ import os
 def loh():
     """Make Murim LOH plot"""
 
-    sh('python loh.py > working/loh_percents')
+    sh('python loh.py 100 > working/loh_percents_100')
     sh('python murim_plot.py')
     sh('python summary_plot.py hg19_murim')
 
