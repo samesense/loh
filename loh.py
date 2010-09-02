@@ -8,7 +8,7 @@ def init_zero():
 def is_loh(cancer, normal):
     """Return true if normal->cancer is LOH"""
 
-    if normal in ('S', 'Y', 'M', 'R', 'K', 'W') and cancer in ('A', 'T', 'G', 'G'):
+    if normal in ('S', 'Y', 'M', 'R', 'K', 'W') and cancer in ('A', 'T', 'G', 'C'):
         return True
     
     return False

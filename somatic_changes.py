@@ -34,11 +34,11 @@ def write_mutations(afile, of):
                 if cancer in calls and normal in calls:
                     totals[cancer+':'+normal] += 1
                     if calls[cancer] != calls[normal]:
-                        if not is_loh(calls[cancer], calls[normal]):
-                            somatics[cancer+':'+normal] += 1
-                            of.write('%s\t%s\t%s\t%s\t%s\n'
-                                     % (afile.split('/')[-1], normal, cancer, 
-                                        calls[normal], calls[cancer]))
+                        #if not is_loh(calls[cancer], calls[normal]):
+                        somatics[cancer+':'+normal] += 1
+                        of.write('%s\t%s\t%s\t%s\t%s\n'
+                                 % (afile.split('/')[-1], normal, cancer, 
+                                    calls[normal], calls[cancer]))
                     
     for sample in somatics:
         print 'total', afile.split('/')[-1], sample, float(100)*float(somatics[sample])/float(totals[sample])
