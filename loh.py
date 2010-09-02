@@ -1,6 +1,7 @@
 """Find somatic changes that are LOH in cancer."""
 import global_settings, os
 from collections import defaultdict
+import nose.tools
 
 def init_zero():
     return 0
@@ -8,7 +9,7 @@ def init_zero():
 def is_loh(cancer, normal):
     """Return true if normal->cancer is LOH"""
 
-    if normal in ('S', 'Y', 'M', 'R', 'K', 'W') and cancer in ('A', 'T', 'G', 'C'):
+    if normal in global_settings.het_bases and cancer in global_settings.homo_bases:
         return True
     
     return False
