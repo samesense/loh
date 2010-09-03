@@ -1,4 +1,5 @@
 """Recreate Murim's plot for paired normal/cancer samples.
+   Choose to plot all normal heterozygous OR
    Only use normal->cancer het->homo calls."""
 import os, sys, global_settings
 from collections import defaultdict
@@ -14,12 +15,14 @@ all = []
 for n in normals: all.append(n)
 for c in cancers: all.append(c)
 
-def get_loh_mutations():
+def get_limiting_mutations(limiting_file):
     """Load normal->cancer het->homo mutations found by loh.py.
-       Make a {} of exome_type to chr:pos to normal samples"""
+       Make a {} of exome_type to chr:pos to normal samples.
+       Also load het->het (R,R) | (Y,Y) etc.
+       Limit the mutations I'm examining in some way."""
 
     exome2mutations = {}
-    with open('working/loh_mutations') as f:
+    with open(limiting_file) as f:
         for line in f:
             exome, chr, pos, normal, cancer, n_call, c_call = line.strip().split('\t')
             if not exome in exome2mutations:
@@ -76,7 +79,7 @@ def get_het_normal(file):
                     # keep if using at least 8x coverage
                     # and if the chr is standard
                     # i.e. no 6_cox_hap2
-                    if call not in ('A', 'T', 'G', 'C') and coverage >= 8 and '_' not in chr and 'M' not in chr and quality > float(100):
+                    if call not in global_settings.homo_bases and coverage >= 8 and '_' not in chr and 'M' not in chr and quality > float(100):
                         if 'XY' == chr:
                             chr = '100'
                         elif 'X' == chr:
@@ -119,11 +122,49 @@ def get_freq(ref_allele, call, str_length, call_str, normal_freq_and_base, chr, 
     print str(normal_freq) + '\t' + str(tumor_freq) + '\t' + chr + '\t' + pos + '\t' + normal_name + '\t' + exome_type
     return abs(normal_freq - tumor_freq)
 
+def print_control(chr_pos, normal_freq_base, o):
+    """Write out data for control(blue/normal) plots"""
+
+    chr, pos = chr_pos.split(':')
+    freq, base = normal_freq_base
+    allele_freq = abs(float(.5) - freq)
+    o.write(chr + '\t' + pos + '\t' 
+            + str(allele_freq) + '\n')
+
+def eval_cancer_diff(sp, chr, pos, normal2het, norm_sample, sample2alleles, tumor_sample, idx, afile):
+    """Record cancer/normal difference"""
+
+    quality = float(sp[idx+1])
+    coverage = int(sp[idx+2])
+    ref_allele = sp[10]
+    # use quality > 100
+    # keep if using at least 8x coverage
+    # and if the chr is standard
+    # i.e. no 6_cox_hap2
+    # sample must be het in normal or paired w/ het in normal
+    if chr+':'+pos in normal2het[norm_sample] and coverage >= 8 and '_' not in chr and 'M' not in chr and quality > float(100):
+        if 'XY' == chr:
+            chr = '100'
+        elif 'X' == chr:
+            chr = '98'
+        elif 'Y' == chr:
+            chr = '99'
+        if chr + ':' + pos not in sample2alleles[tumor_sample]:
+            sample2alleles[tumor_sample][chr + ':' + pos] = get_freq(ref_allele,
+                                                                     sp[idx],
+                                                                     coverage,
+                                                                     sp[idx+3],
+                                                                     normal2het[norm_sample][chr+':'+pos],
+                                                                     chr, pos, norm_sample,
+                                                                     afile.split('/')[-1])
+        
 # this method relies on cancer call being
 # different from the ref
 # I need to add cases where it is the same
 # and thus not present in the file
-exome2mutations = get_loh_mutations()
+use_homo = sys.argv[1] # homo | all
+limiting_mutation_file = sys.argv[2]
+exome2mutations = get_limiting_mutations(limiting_mutation_file)
 data_dir = 'data/exome/'
 for afile in os.listdir(data_dir):
     if not 'sun' in afile: # ignore exome.aa_chg.sun b/c is it redundant
@@ -139,29 +180,14 @@ for afile in os.listdir(data_dir):
                 pos = sp[3]
                 for s in samples:
                     norm_sample = get_norm_sample(s)
-                    if norm_sample:# and chr+':'+pos in exome2mutations[afile][norm_sample]:
-                        quality = float(sp[idx+1])
-                        coverage = int(sp[idx+2])
-                        ref_allele = sp[10]
-                        # use quality > 100
-                        # keep if using at least 8x coverage
-                        # and if the chr is standard
-                        # i.e. no 6_cox_hap2
-                        # sample must be het in normal or paired w/ het in normal
-                        if chr+':'+pos in normal2het[norm_sample] and coverage >= 8 and '_' not in chr and 'M' not in chr and quality > float(100):
-                            if 'XY' == chr:
-                                chr = '100'
-                            elif 'X' == chr:
-                                chr = '98'
-                            elif 'Y' == chr:
-                                chr = '99'
-                            sample2alleles[s][chr + ':' + pos] = get_freq(ref_allele,
-                                                                          sp[idx],
-                                                                          coverage,
-                                                                          sp[idx+3],
-                                                                          normal2het[norm_sample][chr+':'+pos],
-                                                                          chr, pos, norm_sample,
-                                                                          afile.split('/')[-1])
+                    if norm_sample:
+                        if use_homo == 'homo':
+                            if chr+':'+pos in exome2mutations[afile][norm_sample]:
+                                eval_cancer_diff(sp, chr, pos, normal2het, norm_sample, 
+                                                 sample2alleles, s, idx, afile)
+                        else:
+                            eval_cancer_diff(sp, chr, pos, normal2het, norm_sample, 
+                                             sample2alleles, s, idx, afile)
                     idx += 5
         outdir = os.path.join('working',
                               afile.replace('.', '_'))
@@ -179,12 +205,11 @@ for afile in os.listdir(data_dir):
             with open(ofile, 'w') as o:
                 o.write('CHR\tMapInfo\tDiff\n')
                 for chr_pos in normal2het[s]:
-                    #if chr_pos in exome2mutations[afile][s]:
-                    chr, pos = chr_pos.split(':')
-                    freq, base = normal2het[s][chr_pos]
-                    allele_freq = abs(float(.5) - freq)
-                    o.write(chr + '\t' + pos + '\t' + str(allele_freq) + '\n')
-                        
+                    if use_homo == 'homo':
+                        if chr_pos in exome2mutations[afile][s]:
+                            print_control(chr_pos, normal2het[s][chr_pos], o)
+                    else:
+                        print_control(chr_pos, normal2het[s][chr_pos], o)
 
 
 

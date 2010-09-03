@@ -45,9 +45,10 @@ def mk_r(points_input, lines_input, rfile, plot_file, title, col):
 
 
 file_type = sys.argv[1] # hg19 or hg19_murim
-
+plot_dir = sys.argv[2]
+os.system('mkdir -p ' + plot_dir)
 working_dir = 'working'
-plot_dir = 'plots'
+
 rinput = 'rtmp'
 rm_ls = [rinput]
 with open(rinput, 'w') as rout:

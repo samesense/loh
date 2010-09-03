@@ -2,12 +2,27 @@ from paver.easy import *
 import os
 
 @task
-def loh():
-    """Make Murim LOH plot"""
+def loh_homo():
+    """Make Murim LOH plot for only het>homo"""
 
     sh('python loh.py 100 > working/loh_percents_100')
-    sh('python murim_plot.py')
-    sh('python summary_plot.py hg19_murim')
+    sh('python murim_plot.py homo working/loh_mutations > working/loh_problems')
+    sh('python summary_plot.py hg19_murim plots/murim_homo/')
+
+@task
+def loh_full():
+    """Make Murim LOH plot for het>any"""
+
+    sh('python murim_plot.py all working/loh_mutations > working/loh_problems')
+    sh('python summary_plot.py hg19_murim plots/murim_all/')
+
+@task
+def het():
+    """Make Murim LOH plot for het->het mutations"""
+
+    sh('python same_het.py 100 > working/het2het_percents_100')
+    sh('python murim_plot.py homo working/het2het_calls > working/loh_het_problems')
+    sh('python summary_plot.py hg19_murim plots/murim_het2het/')
 
 @task
 def plt():

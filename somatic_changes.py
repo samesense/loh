@@ -1,20 +1,18 @@
-"""Find somatic changes in cancer."""
+"""Find somatic changes in cancer.
+   Watch out b/c there are duplicate calls.
+   Also print out instances of no difference in call (no mutation)."""
 import global_settings, os
 from collections import defaultdict
 
 def init_zero():
     return 0
 
-def is_loh(cancer, normal):
-    """Return true if normal->cancer is LOH"""
-    
-    return False
-
-def write_mutations(afile, of):
+def write_mutations(afile, of, samefile):
     """Find instances where the call from normal to cancer changes"""
 
     somatics = defaultdict(init_zero)
     totals = defaultdict(init_zero)
+    seen = {}
     with open(file) as f:
         for line in f:
             sp = line.split('\t')
@@ -32,21 +30,28 @@ def write_mutations(afile, of):
             # check for changes in normal/cancer pairs
             for cancer, normal in global_settings.pairs:
                 if cancer in calls and normal in calls:
-                    totals[cancer+':'+normal] += 1
-                    if calls[cancer] != calls[normal]:
-                        #if not is_loh(calls[cancer], calls[normal]):
-                        somatics[cancer+':'+normal] += 1
-                        of.write('%s\t%s\t%s\t%s\t%s\n'
-                                 % (afile.split('/')[-1], normal, cancer, 
-                                    calls[normal], calls[cancer]))
+                    key = afile + ':' + cancer + ':' + chr + ':' + pos
+                    if not key in seen:
+                        totals[cancer+':'+normal] += 1
+                        if calls[cancer] != calls[normal]:
+                            somatics[cancer+':'+normal] += 1
+                            of.write('%s\t%s\t%s\t%s\t%s\n'
+                                     % (afile.split('/')[-1], normal, cancer, 
+                                        calls[normal], calls[cancer]))
+                        else:
+                            samefile.write('%s\t%s\t%s\t%s\t%s\n'
+                                           % (afile.split('/')[-1], normal, cancer, 
+                                              calls[normal], calls[cancer]))
+                        seen[key] = True
                     
     for sample in somatics:
         print 'total', afile.split('/')[-1], sample, float(100)*float(somatics[sample])/float(totals[sample])
 
-with open('working/somatic_mutations', 'w') as of:
-    data_dir = 'data/exome/'
-    for afile in os.listdir(data_dir):
-        if not 'sun' in afile: # ignore exome.aa_chg.sun b/c is it redundant
-            file = os.path.join(data_dir, afile)
-            write_mutations(file, of)
+with open('working/no_mutations', 'w') as samefile:
+    with open('working/somatic_mutations', 'w') as of:
+        data_dir = 'data/exome/'
+        for afile in os.listdir(data_dir):
+            if not 'sun' in afile: # ignore exome.aa_chg.sun b/c is it redundant
+                file = os.path.join(data_dir, afile)
+                write_mutations(file, of, samefile)
             
