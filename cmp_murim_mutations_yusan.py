@@ -112,6 +112,6 @@ print 'murim normal/cancer mutants'
 print str(len(murim_normal)) + '/' +  str(len(murim_cancer)), len(murim_mutants)
 
 print 'us normal, murim normal differences', len(get_mutations(murim_normal, us_normal))
-print 'final mutation estimates us/murim', str(len(us_limited_mutants))+ '/'+ str(len(murim_limited_mutants))
+print 'final mutation estimates us/murim', str(len(us_limited_mutants))+ '/'+ str(len(murim_limited_mutants)), len(set(us_limited_mutants.keys()) & set(murim_limited_mutants.keys()))
 
 
