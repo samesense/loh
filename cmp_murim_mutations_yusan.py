@@ -17,7 +17,8 @@ def get_mutations(normal, cancer):
     return (mutants, seen_chrpos)
 
 def get_mutations_limited(normal, cancer, limited):
-    """Given calls in normal and cancer, return the differences"""
+    """Given calls in normal and cancer, return the differences.
+       Limit to only chr locations in limited."""
 
     # chrpos
     mutants = {}
