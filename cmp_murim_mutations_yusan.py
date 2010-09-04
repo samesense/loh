@@ -3,6 +3,17 @@
    This work is done w/ hg18."""
 import os
 
+def cmp_us_murim(us_chrpos, murim_chrpos):
+    """Make sure that the call changes (mutants) are the same.
+       Use chrpos 2 A->B"""
+
+    diffs = {}
+    for chrpos in us_chrpos:
+        if chrpos in murim_chrpos:
+            if us_chrpos[chrpos] != murim_chrpos[chrpos]:
+                diffs[chrpos] = True
+    return diffs
+
 def get_mutations(normal, cancer):
     """Given calls in normal and cancer, return the differences"""
 
@@ -112,6 +123,6 @@ print 'murim normal/cancer mutants'
 print str(len(murim_normal)) + '/' +  str(len(murim_cancer)), len(murim_mutants)
 
 print 'us normal, murim normal differences', len(get_mutations(murim_normal, us_normal))
-print 'final mutation estimates us/murim', str(len(us_limited_mutants))+ '/'+ str(len(murim_limited_mutants)), len(set(us_limited_mutants.keys()) & set(murim_limited_mutants.keys()))
+print 'final mutation estimates us/murim', str(len(us_limited_mutants))+ '/'+ str(len(murim_limited_mutants)), len(set(us_limited_mutants.keys()) & set(murim_limited_mutants.keys())), len(cmp_us_murim(us_limited_mutants, murim_limited_mutants))
 
 
