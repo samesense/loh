@@ -3,9 +3,64 @@
    of chromosomal abberations using
    Infinium whole-genome genotyping.
    Make a plot for normal and cancer.
+
+   Plot the ratio of coverage (not freq)
+   for normal and cancer.
 """
-import os, random, sys, math
+import os, random, sys, math, global_settings
 from collections import defaultdict
+
+def mk_cvn_seq(coverages, cancer, normal, cancer_file, normal_file):
+    """Make input to CNV-seq. Print out each position the # of times it is covered (signal strength)."""
+
+    with open(cancer_file, 'w') as cancerf:
+        with open(normal_file, 'w') as normalf:
+            for chrpos in coverages[cancer]:
+                chr, pos = chrpos.split(':')
+                if chrpos in coverages[normal]:
+                    chr = chr.split('chr')[1]
+                    for i in xrange(coverages[cancer][chrpos]):
+                        cancerf.write('%s\t%s\n' %
+                                      (chr, pos))
+                    for i in xrange(coverages[normal][chrpos]):
+                        normalf.write('%s\t%s\n' %
+                                      (chr, pos))
+
+def mk_signal_ratio(coverages, cancer, normal, input_file):
+    """Write the ratio of cancer:normal signal strength for positions."""
+
+    with open(input_file, 'w') as f:
+        f.write('Chr\tPos\tCovRatio\n')
+        for chrpos in coverages[cancer]:
+            chr, pos = chrpos.split(':')
+            if chrpos in coverages[normal]:
+                if chr in ['chr1', 'chr6', 'chr2', 'chr10']:
+                    f.write('%s\t%s\t%f\n' %
+                            (chr, pos, math.log(float(coverages[cancer][chrpos])/
+                                                float(coverages[normal][chrpos]), 2)))
+
+def mk_r_signal_ratio_file(r_file, input_file, plot_file):
+    """Make R input commands for signal ratio"""
+
+    with open(r_file, 'w') as f:
+        f.write('library(ggplot2)\n')
+        f.write("data<-read.delim('" + input_file 
+                + "',header=TRUE,sep='\\t')\n")
+        f.write("png('" + plot_file + "')\n")
+        f.write("ggplot(data) + aes(x=Pos,y=CovRatio) + geom_point() + facet_grid(Chr~.) + opts(legend.position='none',title='Log Coverage Ratio')\n")
+        f.write('dev.off()\n')
+        
+    os.system('R --vanilla < ' + r_file)
+
+def plot_coverage_ratio(coverages, cancer, normal, plot_file):
+    """For each chr, plot the coverage ratio of cancer to normal along the chr"""
+
+    input_file = 'input' + str(random.randint(0,1000))
+    rtmp = 'rtmp' + str(random.randint(0,1000))
+
+    mk_signal_ratio(coverages, cancer, normal, input_file)
+    mk_r_signal_ratio_file(rtmp, input_file, plot_file)
+    os.system('rm ' + input_file + ' ' + rtmp)
 
 def mk_r_ratio_input(chrpos2alleleFreqs, input_file):
     """Write our chr pos and ratio of ref allele freq to other allele freq input_file"""
@@ -118,22 +173,57 @@ def get_ref_nonRef_allele_freqs(afile):
                 idx += 5
     return snps
 
+def get_coverage(afile):
+    """Print the coverage at each SNP"""
+
+    coverages = defaultdict(dict)
+    with open(afile) as f:
+        for line in f:
+            sp = line.split('\t')
+            samples = sp[8].split('-')
+            idx = 17
+            chr = sp[2]
+            pos = sp[3]
+            for sample in samples:
+                if '_' not in chr and 'M' not in chr:
+                    coverage = int(sp[idx+2])
+                    coverages[sample][chr+':'+pos] = int(coverage)
+                idx += 5
+    return coverages
+
 data_dir = 'data/exome'
 plot_dir = 'plots/cnv/'
+cnv_seq_dir = 'working/cnv_seq/'
 os.system('mkdir -p ' + plot_dir)
+paired_data = []
+for cancer, normal in global_settings.pairs:
+    paired_data.append(cancer)
+    paired_data.append(normal)
+
 for afile in os.listdir(data_dir):
     if not 'sun' in afile: # ignore exome.aa_chg.sun b/c is it redundant
         file = os.path.join(data_dir, afile)
         allele_freqs = get_ref_nonRef_allele_freqs(file)
-        for sample in ['yusan', 'yusanN']:
-#            ref_allele_freq, min_allele_freq = allele_freqs[chr_pos]
-            plot_file = os.path.join(plot_dir, afile + '.' + sample + '.png')
-            plot_ref_allele_freq(allele_freqs[sample], plot_file)
-            plot_allele_ratio(allele_freqs[sample], plot_file)
-            os.system('montage -geometry 500 -quality 100 '
-                      + plot_file + ' '
-                      + plot_file.replace('png', 'ratio.png') + ' '
-                      + os.path.join(plot_dir, afile + '.' + sample + '.sum.png'))
-#            print('%s\t%s\t%s\t%f'
-#                  % (afile, chr, pos,
-#                     ref_allele_freq)) 
+        coverages = get_coverage(file)
+        plots = {}
+#        for sample in paired_data:
+#            plot_file = os.path.join(plot_dir, afile + '.' + sample + '.png')
+#            plot_ref_allele_freq(allele_freqs[sample], plot_file)
+#            plot_allele_ratio(allele_freqs[sample], plot_file)
+#            file_name = os.path.join(plot_dir, afile + '.' + sample + '.sum.png')
+#            os.system('montage -geometry 500 -quality 100 '
+#                      + plot_file + ' '
+#                      + plot_file.replace('png', 'ratio.png') + ' '
+#                      + file_name)
+#            plots[sample] = file_name
+        for cancer, normal in global_settings.pairs:
+            cov_ratio_file = os.path.join(plot_dir, afile + '.' + cancer + '.coverage.png')
+            plot_coverage_ratio(coverages, cancer, normal, cov_ratio_file)
+            cnv_seq_cancer_file =  os.path.join(cnv_seq_dir, afile + '.' + cancer + '.coverage.hits')
+            cnv_seq_normal_file =  os.path.join(cnv_seq_dir, afile + '.' + normal + '.coverage.hits')
+            mk_cvn_seq(coverages, cancer, normal, cnv_seq_cancer_file, cnv_seq_normal_file)
+ #           os.system('montage -geometry 500 -quality 100 '
+ #                     + plots[normal] + ' '
+ #                     + plots[cancer] + ' '
+ #                     + os.path.join(plot_dir, afile + '.' + cancer + '.cmp.png'))
+
