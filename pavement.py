@@ -1,5 +1,20 @@
 from paver.easy import *
-import os
+import os, sys
+sys.path.append('./')
+import global_settings
+
+@task
+def cnv_seq():
+    """Run cnv_seq"""
+
+    for cancer, normal in global_settings.pairs:
+        sh('perl cnv-seq.pl --test working/cnv_seq/exome.aa_chg.'
+           + cancer + '.coverage.hits --ref working/cnv_seq/exome.aa_chg.'
+           + normal + '.coverage.hits --genome human --log2 0.6 --p 0.001 --bigger-window 1.5 --annotate -minimum-windows 8 --global-normalization')
+        sh('python cnv_seq_plot.py '
+           + 'exome.aa_chg.' + cancer + '.coverage.hits-vs-exome.aa_chg.'
+           + normal + '.coverage.hits.log2-0.6.pvalue-0.001.minw-8.cnv '
+           + 'plots/cnv-seq/' + cancer + '.png')
 
 @task
 def loh_homo():
