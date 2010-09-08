@@ -5,7 +5,7 @@ import global_settings
 
 @task 
 def mixture():
-    """Find mixture between cancer and normal"""
+    """Find mixture between cancer and normal. Call cnv_seq before this."""
 
     for exome_type in global_settings.exome_types:
         for cancer, normal in global_settings.pairs:
@@ -18,21 +18,25 @@ def mixture():
 def cnv_seq():
     """Run cnv_seq"""
 
-    for exome in global_settings.exome_types:
-        for cancer, normal in global_settings.pairs:
-            sh('perl cnv-seq.pl --test working/cnv_seq/' + exome + '.'
-               + cancer + '.coverage.hits --ref working/cnv_seq/' + exome + '.'
-               + normal + '.coverage.hits --genome human --log2 0.6 --p 0.001 --bigger-window 1.5 --annotate -minimum-windows 4')# --global-normalization')
-            # call loh_full to get murim data
-            sh('python cnv_seq_plot.py '
-               + exome + '.' + cancer + '.coverage.hits-vs-' + exome + '.'
-               + normal + '.coverage.hits.log2-0.6.pvalue-0.001.minw-4.cnv '
-               + 'working/' + exome.replace('.','_') + '/hg19_murim.' + cancer + ' '
-               + 'plots/cnv-seq/' + exome + '.' + cancer + '.png')
-            sh('montage -geometry 500 -quality 100 -tile 1x2 '
-               + 'plots/cnv-seq/' + exome + '.' + cancer + '.png '
-               + 'plots/cnv-seq/' + exome + '.' + cancer + '.murim.png '
-               + 'plots/cnv-seq/' + exome + '.' + cancer + '.both.png')
+    #sh('python cnv_plot.py')
+
+    for subdir in ('exome', 'all_non_ref'):
+        for exome in global_settings.exome_types:
+            for cancer, normal in global_settings.pairs:
+                sh('perl cnv-seq.pl --test working/cnv_seq/' + subdir + '/' + exome + '.'
+                   + cancer + '.coverage.hits --ref working/cnv_seq/' + subdir + '/' + exome + '.'
+                   + normal + '.coverage.hits --genome human --log2 0.6 --p 0.001 --bigger-window 1.5 --annotate -minimum-windows 4')# --global-normalization')
+                # call loh_full to get murim data
+                sh('python cnv_seq_plot.py '
+                   + exome + '.' + cancer + '.coverage.hits-vs-' + exome + '.'
+                   + normal + '.coverage.hits.log2-0.6.pvalue-0.001.minw-4.cnv '
+                   + 'working/' + exome.replace('.','_') + '/hg19_murim.' + cancer + ' '
+                   + subdir + ' '
+                   + 'plots/cnv-seq/' + subdir + '/' + exome + '.' + cancer + '.png')
+                sh('montage -geometry 500 -quality 100 -tile 1x2 '
+                   + 'plots/cnv-seq/' + subdir + '/' + exome + '.' + cancer + '.png '
+                   + 'plots/cnv-seq/' + subdir + '/' + exome + '.' + cancer + '.murim.png '
+                   + 'plots/cnv-seq/' + subdir + '/' + exome + '.' + cancer + '.both.png')
 
 @task
 def loh_homo():

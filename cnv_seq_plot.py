@@ -6,7 +6,8 @@ random.seed()
 rtmp = 'rtmp' + str(random.randint(0,1000))
 input = sys.argv[1]
 murim_input = sys.argv[2]
-png = sys.argv[3]
+subdir = sys.argv[3] # exome | all_non_ref
+png = sys.argv[4]
 
 
 # CNV plot
@@ -18,11 +19,10 @@ with open(rtmp, 'w') as f:
     f.write("png('" + png + "')\n")
     f.write("plot.cnv.all.perry(data,colour=9)\n")
     f.write('dev.off()\n')
-    f.write("cnv.print(data, file='working/cnv_seq/CNV/" + input.split('.coverage')[0]  + ".cnvs')\n")
+    f.write("cnv.print(data, file='working/cnv_seq/CNV/" + subdir + '/' + input.split('.coverage')[0]  + ".cnvs')\n")
     f.write('q()\n')
 
 os.system('R --vanilla < ' + rtmp)
-
 
 # Murim's plot
 with open(rtmp, 'w') as f:
@@ -37,5 +37,5 @@ with open(rtmp, 'w') as f:
 os.system('R --vanilla < ' + rtmp)
 
 os.system('rm ' + rtmp)
-os.system('mv ' + input + ' working/cnv_seq/CNV/')
-os.system('mv ' + input.replace('cnv', 'count') + ' working/cnv_seq/CNV/')
+os.system('mv ' + input + ' working/cnv_seq/CNV/' + subdir + '/')
+os.system('mv ' + input.replace('cnv', 'count') + ' working/cnv_seq/CNV/' + subdir + '/')

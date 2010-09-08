@@ -12,7 +12,7 @@ from collections import defaultdict
 
 random.seed()
 
-def mk_cvn_seq(coverages, cancer, normal, cancer_file, normal_file):
+def mk_cnv_seq(coverages, cancer, normal, cancer_file, normal_file):
     """Make input to CNV-seq. Print out each position the # of times it is covered (signal strength)."""
 
     with open(cancer_file, 'w') as cancerf:
@@ -177,7 +177,7 @@ def get_ref_nonRef_allele_freqs(afile):
     return snps
 
 def get_coverage(afile):
-    """Print the coverage at each SNP"""
+    """Get the coverage at each SNP from the exome file"""
 
     coverages = defaultdict(dict)
     with open(afile) as f:
@@ -194,21 +194,42 @@ def get_coverage(afile):
                 idx += 5
     return coverages
 
-data_dir = 'data/exome'
+def get_coverage_all_non_ref(afile):
+    """Get the coverage at each SNP from the all_non_ref files. These are more complete than the exome files.
+       The indexes are off by 1, so I created this new function."""
+
+    coverages = defaultdict(dict)
+    with open(afile) as f:
+        for line in f:
+            sp = line.split('\t')
+            samples = sp[9].split('-')
+            idx = 18
+            chr = sp[2]
+            pos = sp[3]
+            for sample in samples:
+                if '_' not in chr and 'M' not in chr:
+                    coverage = int(sp[idx+2])
+                    coverages[sample][chr+':'+pos] = int(coverage)
+                idx += 5
+    return coverages
+
+data_dir = 'data/'
+exome_dir = 'exome'
+full_data_dir = 'all_non_ref/'
 plot_dir = 'plots/cnv/'
 cnv_seq_dir = 'working/cnv_seq/'
+
 os.system('mkdir -p ' + plot_dir)
 paired_data = []
 for cancer, normal in global_settings.pairs:
     paired_data.append(cancer)
     paired_data.append(normal)
 
-for afile in os.listdir(data_dir):
-    if not 'sun' in afile: # ignore exome.aa_chg.sun b/c is it redundant
-        file = os.path.join(data_dir, afile)
-        allele_freqs = get_ref_nonRef_allele_freqs(file)
-        coverages = get_coverage(file)
-        plots = {}
+for afile in global_settings.exome_types:
+    file = os.path.join(data_dir, exome_dir, afile)
+    allele_freqs = get_ref_nonRef_allele_freqs(file)
+    coverages = get_coverage(file)
+#    plots = {}
 #        for sample in paired_data:
 #            plot_file = os.path.join(plot_dir, afile + '.' + sample + '.png')
 #            plot_ref_allele_freq(allele_freqs[sample], plot_file)
@@ -219,14 +240,26 @@ for afile in os.listdir(data_dir):
 #                      + plot_file.replace('png', 'ratio.png') + ' '
 #                      + file_name)
 #            plots[sample] = file_name
-        for cancer, normal in global_settings.pairs:
-            cov_ratio_file = os.path.join(plot_dir, afile + '.' + cancer + '.coverage.png')
-            plot_coverage_ratio(coverages, cancer, normal, cov_ratio_file)
-            cnv_seq_cancer_file =  os.path.join(cnv_seq_dir, afile + '.' + cancer + '.coverage.hits')
-            cnv_seq_normal_file =  os.path.join(cnv_seq_dir, afile + '.' + normal + '.coverage.hits')
-            mk_cvn_seq(coverages, cancer, normal, cnv_seq_cancer_file, cnv_seq_normal_file)
+    for cancer, normal in global_settings.pairs:
+        cov_ratio_file = os.path.join(plot_dir, exome_dir + '.' + afile + '.' + cancer + '.coverage.png')
+        plot_coverage_ratio(coverages, cancer, normal, cov_ratio_file)
+        cnv_seq_cancer_file = os.path.join(cnv_seq_dir, exome_dir, afile + '.' + cancer + '.coverage.hits')
+        cnv_seq_normal_file = os.path.join(cnv_seq_dir, exome_dir, afile + '.' + normal + '.coverage.hits')
+        mk_cnv_seq(coverages, cancer, normal, cnv_seq_cancer_file, cnv_seq_normal_file)
  #           os.system('montage -geometry 500 -quality 100 '
  #                     + plots[normal] + ' '
  #                     + plots[cancer] + ' '
  #                     + os.path.join(plot_dir, afile + '.' + cancer + '.cmp.png'))
+
+
+    # do the same for the more complete dataset (data/all_non_ref/)
+    file = os.path.join(data_dir, full_data_dir, afile)
+    coverages = get_coverage_all_non_ref(file)
+    for cancer, normal in global_settings.pairs:
+        cnv_seq_cancer_file = os.path.join(cnv_seq_dir, full_data_dir, 
+                                           afile + '.' + cancer + '.coverage.hits')
+        cnv_seq_normal_file = os.path.join(cnv_seq_dir, full_data_dir, 
+                                           afile + '.' + normal + '.coverage.hits')
+        mk_cnv_seq(coverages, cancer, normal, 
+                   cnv_seq_cancer_file, cnv_seq_normal_file)
 
