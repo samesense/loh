@@ -51,6 +51,7 @@ def mk_r_signal_ratio_file(r_file, input_file, plot_file):
         f.write("png('" + plot_file + "')\n")
         f.write("ggplot(data) + aes(x=Pos,y=CovRatio) + geom_point() + facet_grid(Chr~.) + opts(legend.position='none',title='Log Coverage Ratio')\n")
         f.write('dev.off()\n')
+        f.write('q()\n')
         
     os.system('R --vanilla < ' + r_file)
 
