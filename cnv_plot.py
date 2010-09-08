@@ -10,6 +10,8 @@
 import os, random, sys, math, global_settings
 from collections import defaultdict
 
+random.seed()
+
 def mk_cvn_seq(coverages, cancer, normal, cancer_file, normal_file):
     """Make input to CNV-seq. Print out each position the # of times it is covered (signal strength)."""
 

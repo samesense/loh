@@ -1,6 +1,7 @@
 library(ggplot2)
+library(cnv)
 
-plot.cnv.all <- function(data, chrom.gap=2e7, colour=5, title=NA, ylim=c(-2,2), xlabel='Chromosome')
+plot.cnv.all.perry <- function(data, chrom.gap=2e7, colour=5, title=NA, ylim=c(-2,2), xlabel='Chromosome')
 {
 	# modified from cnv-seq
 
