@@ -8,3 +8,7 @@ pairs = (('yuaker', 'yuakerN'),
          ('yuiskia', 'yuiskiaN'),
          ('yunoca091225T', 'yunoca091283P'),
          ('yusan', 'yusanN'))
+
+exome_types = ('exome.aa_chg', 'exome.intron', 
+               'exome.no_aa_chg', 'exome.unknown',
+               'exome.UTR')
