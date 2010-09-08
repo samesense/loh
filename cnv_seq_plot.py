@@ -34,4 +34,6 @@ with open(rtmp, 'w') as f:
 
 os.system('R --vanilla < ' + rtmp)
 
-os.system('rm ' + rtmp + ' ' + input + ' ' + input.replace('cnv', 'count'))
+os.system('rm ' + rtmp)
+os.system('mv ' + input + ' working/cnv_seq/CNV/')
+os.system('mv ' + input.replace('cnv', 'count') + ' working/cnv_seq/CNV/')
