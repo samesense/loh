@@ -1,12 +1,17 @@
 """R commands for cvn-seq plot"""
 import sys, os, random
 
+random.seed()
+
 rtmp = 'rtmp' + str(random.randint(0,1000))
 input = sys.argv[1]
-png = sys.argv[2]
+murim_input = sys.argv[2]
+png = sys.argv[3]
 
+
+# CNV plot
 with open(rtmp, 'w') as f:
-    f.write('library(cnv)\n')
+    f.write("source('funcs.R')\n")
     f.write("data<-read.delim('"
             + input + "')\n")
     f.write("png('" + png + "')\n")
@@ -15,5 +20,18 @@ with open(rtmp, 'w') as f:
     f.write('q()\n')
 
 os.system('R --vanilla < ' + rtmp)
-os.system('rm ' + rtmp + ' ' + input + ' ' + input.replace('cnv', 'count'))
 
+
+# Murim's plot
+with open(rtmp, 'w') as f:
+    f.write("source('funcs.R')\n")
+    f.write("data<-read.delim('"
+            + murim_input + "')\n")
+    f.write("png('" + png.replace('png', 'murim.png') + "')\n")
+    f.write("plot.murim(data,colour=9)\n")
+    f.write('dev.off()\n')
+    f.write('q()\n')
+
+os.system('R --vanilla < ' + rtmp)
+
+os.system('rm ' + rtmp + ' ' + input + ' ' + input.replace('cnv', 'count'))

@@ -80,12 +80,12 @@ def get_het_normal(file):
                     # and if the chr is standard
                     # i.e. no 6_cox_hap2
                     if call not in global_settings.homo_bases and coverage >= 8 and '_' not in chr and 'M' not in chr and quality > float(100):
-                        if 'XY' == chr:
-                            chr = '100'
-                        elif 'X' == chr:
-                            chr = '98'
-                        elif 'Y' == chr:
-                            chr = '99'
+                       #  if 'XY' == chr:
+#                             chr = '100'
+#                         elif 'X' == chr:
+#                             chr = '98'
+#                         elif 'Y' == chr:
+#                             chr = '99' 
                         normal2het[s][chr+':'+pos] = get_normal_val(ref_allele,
                                                                     coverage,
                                                                     sp[idx+3])
@@ -143,12 +143,12 @@ def eval_cancer_diff(sp, chr, pos, normal2het, norm_sample, sample2alleles, tumo
     # i.e. no 6_cox_hap2
     # sample must be het in normal or paired w/ het in normal
     if chr+':'+pos in normal2het[norm_sample] and coverage >= 8 and '_' not in chr and 'M' not in chr and quality > float(100):
-        if 'XY' == chr:
-            chr = '100'
-        elif 'X' == chr:
-            chr = '98'
-        elif 'Y' == chr:
-            chr = '99'
+        # if 'XY' == chr:
+#             chr = '100'
+#         elif 'X' == chr:
+#             chr = '98'
+#         elif 'Y' == chr:
+#             chr = '99'
         if chr + ':' + pos not in sample2alleles[tumor_sample]:
             sample2alleles[tumor_sample][chr + ':' + pos] = get_freq(ref_allele,
                                                                      sp[idx],

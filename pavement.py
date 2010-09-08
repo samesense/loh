@@ -11,10 +11,16 @@ def cnv_seq():
         sh('perl cnv-seq.pl --test working/cnv_seq/exome.aa_chg.'
            + cancer + '.coverage.hits --ref working/cnv_seq/exome.aa_chg.'
            + normal + '.coverage.hits --genome human --log2 0.6 --p 0.001 --bigger-window 1.5 --annotate -minimum-windows 8 --global-normalization')
+        # call loh_full to get murim data
         sh('python cnv_seq_plot.py '
            + 'exome.aa_chg.' + cancer + '.coverage.hits-vs-exome.aa_chg.'
            + normal + '.coverage.hits.log2-0.6.pvalue-0.001.minw-8.cnv '
+           + 'working/exome_aa_chg/hg19_murim.' + cancer + ' '
            + 'plots/cnv-seq/' + cancer + '.png')
+        sh('montage -geometry 500 -quality 100 -tile 1x2 '
+           + 'plots/cnv-seq/' + cancer + '.png '
+           + 'plots/cnv-seq/' + cancer + '.murim.png '
+           + 'plots/cnv-seq/' + cancer + '.both.png')
 
 @task
 def loh_homo():
@@ -22,7 +28,7 @@ def loh_homo():
 
     sh('python loh.py 100 > working/loh_percents_100')
     sh('python murim_plot.py homo working/loh_mutations > working/loh_problems')
-    sh('python summary_plot.py hg19_murim plots/murim_homo/')
+    #sh('python summary_plot.py hg19_murim plots/murim_homo/')
 
 @task
 def loh_full():
