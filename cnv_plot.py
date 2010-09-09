@@ -246,7 +246,7 @@ for afile in global_settings.exome_types:
         plot_coverage_ratio(coverages, cancer, normal, cov_ratio_file)
         cnv_seq_cancer_file = os.path.join(cnv_seq_dir, exome_dir, afile + '.' + cancer + '.coverage.hits')
         cnv_seq_normal_file = os.path.join(cnv_seq_dir, exome_dir, afile + '.' + normal + '.coverage.hits')
-        #mk_cnv_seq(coverages, cancer, normal, cnv_seq_cancer_file, cnv_seq_normal_file)
+        mk_cnv_seq(coverages, cancer, normal, cnv_seq_cancer_file, cnv_seq_normal_file)
  #           os.system('montage -geometry 500 -quality 100 '
  #                     + plots[normal] + ' '
  #                     + plots[cancer] + ' '

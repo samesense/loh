@@ -14,5 +14,5 @@ exome_types = ('exome.aa_chg', 'exome.intron',
                'exome.UTR')
 
 # used to make all_non_ref data look like exome data
-alias = {{'yusanT':'yusan'},
-         {'yusanN':'yusanN'}}
+alias = {'yusanT':'yusan',
+         'yusanN':'yusanN'}
