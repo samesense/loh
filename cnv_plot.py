@@ -196,7 +196,8 @@ def get_coverage(afile):
 
 def get_coverage_all_non_ref(afile):
     """Get the coverage at each SNP from the all_non_ref files. These are more complete than the exome files.
-       The indexes are off by 1, so I created this new function."""
+       The indexes are off by 1, so I created this new function.
+       Use the aliases to make this data look like the exome data (ex yusanT->yusan)"""
 
     coverages = defaultdict(dict)
     with open(afile) as f:
@@ -209,7 +210,7 @@ def get_coverage_all_non_ref(afile):
             for sample in samples:
                 if '_' not in chr and 'M' not in chr:
                     coverage = int(sp[idx+2])
-                    coverages[sample][chr+':'+pos] = int(coverage)
+                    coverages[global_settings.alias[sample]][chr+':'+pos] = int(coverage)
                 idx += 5
     return coverages
 
@@ -245,7 +246,7 @@ for afile in global_settings.exome_types:
         plot_coverage_ratio(coverages, cancer, normal, cov_ratio_file)
         cnv_seq_cancer_file = os.path.join(cnv_seq_dir, exome_dir, afile + '.' + cancer + '.coverage.hits')
         cnv_seq_normal_file = os.path.join(cnv_seq_dir, exome_dir, afile + '.' + normal + '.coverage.hits')
-        mk_cnv_seq(coverages, cancer, normal, cnv_seq_cancer_file, cnv_seq_normal_file)
+        #mk_cnv_seq(coverages, cancer, normal, cnv_seq_cancer_file, cnv_seq_normal_file)
  #           os.system('montage -geometry 500 -quality 100 '
  #                     + plots[normal] + ' '
  #                     + plots[cancer] + ' '
@@ -262,4 +263,5 @@ for afile in global_settings.exome_types:
                                            afile + '.' + normal + '.coverage.hits')
         mk_cnv_seq(coverages, cancer, normal, 
                    cnv_seq_cancer_file, cnv_seq_normal_file)
+
 

@@ -12,3 +12,7 @@ pairs = (('yuaker', 'yuakerN'),
 exome_types = ('exome.aa_chg', 'exome.intron', 
                'exome.no_aa_chg', 'exome.unknown',
                'exome.UTR')
+
+# used to make all_non_ref data look like exome data
+alias = {{'yusanT':'yusan'},
+         {'yusanN':'yusanN'}}

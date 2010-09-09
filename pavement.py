@@ -7,13 +7,14 @@ import global_settings
 def mixture():
     """Find mixture between cancer and normal. Call cnv_seq before this."""
 
-    for exome_type in global_settings.exome_types:
-        for cancer, normal in global_settings.pairs:
-            sh('python find_mixture.py '
-               + 'working/' + exome_type.replace('.', '_') + '/hg19_murim.' + cancer + ' '
-               + 'working/cnv_seq/CNV/' + exome_type + '.' + cancer + '.cnvs '
-               + '> working/mixture/' + exome_type + '.' + cancer + '.mix')
-
+    for subdir in ('exome', 'all_non_ref'):
+        for exome_type in global_settings.exome_types:
+            for cancer, normal in global_settings.pairs:
+                sh('python find_mixture.py '
+                   + 'working/' + exome_type.replace('.', '_') + '/hg19_murim.' + cancer + ' '
+                   + 'working/cnv_seq/CNV/' + subdir + '/' + exome_type + '.' + cancer + '.cnvs '
+                   + '> working/mixture/' + subdir + '/' + exome_type + '.' + cancer + '.mix')
+                
 @task
 def cnv_seq():
     """Run cnv_seq"""
