@@ -10,7 +10,7 @@ def dump_mutants(chrpos2mutant):
     with open('working/new_mutants', 'w') as f:
         for chrpos in chrpos2mutant:
             chr, pos = chrpos.split(':')
-            f.write('%s\t%s\t%s' %
+            f.write('%s\t%s\t%s\n' %
                     (chr, pos, chrpos2mutant[chrpos]))
 
 def get_mutations(afile):
@@ -52,7 +52,7 @@ def get_mutations(afile):
                     # that differ from the reference
                     # only the first case matters
                     # at this quality cutoff
-                    if mutation_type not in ('AB:AA', 'AA:AB', 'AA:BB'):
+                    if mutation_type not in ('AB:AA', 'AA:AB', 'AA:BB', 'BB:AA'):
                         murim[sample_name_normal][chrpos] = mutation_type
 
     return (inherited, somatic, murim)
@@ -67,7 +67,6 @@ for exome_type in global_settings.exome_types:
         i = len(inherited[sample].keys())
         s = len(somatic[sample].keys())
         m = len(murim[sample].keys())
-        
         for chrpos in somatic[sample]:
             total_somatic_mutations[sample][chrpos] = somatic[sample][chrpos]
 
@@ -78,6 +77,7 @@ for exome_type in global_settings.exome_types:
               (exome_type, sample, i, s, m,
                float(100)*float(s)/float(i+s)))
 
+dump_mutants(total_murim_mutations[sample])
 for sample in total_somatic_mutations:
     print 'total somatic', sample, len(total_somatic_mutations[sample])
     print 'total murim', sample, len(total_murim_mutations[sample])

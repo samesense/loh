@@ -14,6 +14,15 @@ def cmp_us_murim(us_chrpos, murim_chrpos):
                 diffs[chrpos] = True
     return diffs
 
+def dump_mutants(chrpos2mut):
+    """Write mutations to file"""
+
+    with open('working/old_mutants', 'w') as f:
+        for chrpos in chrpos2mut:
+            chr, pos = chrpos.split(':')
+            f.write('%s\t%s\t%s\n' %
+                    (chr, pos, chrpos2mut[chrpos]))
+
 def get_mutations(normal, cancer):
     """Given calls in normal and cancer, return the differences"""
 
@@ -102,6 +111,7 @@ us_cancer = load_our_calls(os.path.join(our_data_dir,
                                         'yusanT', our_suffix),
                            quality_cut)
 us_mutants, us_chrpos = get_mutations(us_normal, us_cancer)
+dump_mutants(us_mutants)
 
 print 'US normal/cancer mutants'
 print str(len(us_normal)) + '/' + str(len(us_cancer)), len(us_mutants)
