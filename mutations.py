@@ -24,12 +24,13 @@ def get_mutations(afile):
                 i = 1/0
             (avg_quality, cancer_quality, 
              normal_quality) = (float(x) for x in sp[14:17])
-            if mutation_type == 'AA:AA':
-                pass
-            elif mutation_type in ('BB:BB', 'AB:AB'):
-                inherited[sample_name_normal] += 1
-            else:
-                somatic[sample_name_normal] += 1
+            if cancer_quality > float(100) and normal_quality > float(100):
+                if mutation_type == 'AA:AA':
+                    pass
+                elif mutation_type in ('BB:BB', 'AB:AB'):
+                    inherited[sample_name_normal] += 1
+                else:
+                    somatic[sample_name_normal] += 1
     return (inherited, somatic)
 
 for exome_type in global_settings.exome_types:
