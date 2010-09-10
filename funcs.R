@@ -68,3 +68,8 @@ plot.murim <- function(data, chrom.gap=2e7, colour=5, title=NA, ylim=c(-2,2), xl
 	if(!is.na(title)) p$title <- title
 	p
 }
+
+test_bar<-function(afile){
+data<-read.delim(afile,header=TRUE,sep='\t')
+ggplot(data)
+}
