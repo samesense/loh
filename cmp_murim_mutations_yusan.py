@@ -61,7 +61,7 @@ def load_our_calls(afile, quality_cutoff):
                  notsure1, notsure2, reads, read_str,
                  something) = line.strip().split('\t')
                 if int(read_qual) > quality_cutoff and int(reads) >= 8:
-                    calls[chr + ':' + base] = call
+                    calls[chr + ':' + base] = call.upper()
     return calls
 
 def load_murims_calls(afile, quality_cutoff):
@@ -92,7 +92,7 @@ def load_murims_calls(afile, quality_cutoff):
                     have_data = True
                 if have_data:
                     if int(quality) > quality_cutoff:
-                        calls[chr+':'+base] = call
+                        calls[chr+':'+base] = call.upper()
     return calls
 
 quality_cut = 100
