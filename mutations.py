@@ -67,7 +67,7 @@ def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff):
 
             (avg_snp_quality, min_snp_quality, 
              max_snp_quality) = (float(x) for x in sp[14:17])
-            if normal_qualities[chrpos] > quality_cutoff and cancer_qualities[chrpos] > quality_cutoff and normal_coverage >= 8 and cancer_coverage >= 8:
+            if normal_qualities[chrpos] > quality_cutoff and cancer_qualities[chrpos] > quality_cutoff and normal_coverage >= 8 and cancer_coverage >= 8 and max_snp_quality > quality_cutoff:
                 if mutation_type == 'AA:AA':
                     pass
                 elif mutation_type in ('BB:BB', 'AB:AB'):
@@ -96,6 +96,7 @@ cancer_qualities = get_consensus_qualities('data/all_non_ref/yusanT.ann')
 normal_qualities = get_consensus_qualities('data/all_non_ref/yusanN.ann')
 
 total_somatic_mutations = defaultdict(dict)
+total_inherited_mutations = defaultdict(dict)
 total_murim_mutations = defaultdict(dict)
 total_somatic_exome_mutations = defaultdict(dict)
 total_inherited_exome_mutations = defaultdict(dict)
@@ -120,6 +121,9 @@ for exome_type in global_settings.exome_types:
 
         for chrpos in murim[sample]:
             total_murim_mutations[sample][chrpos] = murim[sample][chrpos]
+            
+        for chrpos in inherited[sample]:
+            total_inherited_mutations[sample][chrpos] = inherited[sample][chrpos]
 
         print('%s\t%s\t%d\t%d\t%d\t%.2f' %
               (exome_type, sample, i, s, m,
@@ -139,6 +143,12 @@ for sample in total_somatic_mutations:
     coding_somatic = len(total_somatic_exome_mutations[sample])
     coding_inherited = len(total_inherited_exome_mutations[sample])
     coding_total = float(coding_somatic + coding_inherited)
+    total_somatic = len(total_somatic_mutations[sample])
+    total_inherited = len(total_inherited_mutations[sample])
+    all_total = total_somatic + total_inherited
     print 'total somatic exome', sample, coding_somatic, float(100)*float(coding_somatic)/float(coding_total)
     print 'total inherited exome', sample, coding_inherited, float(100)*float(coding_inherited)/float(coding_total)
+
+    print 'total somatic', sample, total_somatic, float(100)*float(total_somatic)/float(all_total)
+    print 'total inherited', sample, total_inherited, float(100)*float(total_inherited)/float(all_total)
 
