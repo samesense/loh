@@ -74,7 +74,7 @@ def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff):
                     inherited[sample_name_normal][chrpos] = (mutation_type,
                                                              normal_call,
                                                              cancer_call)
-                else:
+                elif normal_call != cancer_call:
                     somatic[sample_name_normal][chrpos] = (mutation_type,
                                                            normal_call,
                                                            cancer_call)
@@ -82,7 +82,7 @@ def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff):
                     # that differ from the reference
                     # only the first case matters
                     # at this quality cutoff
-                    if mutation_type not in ('AB:AA', 'AA:AB', 'AA:BB', 'BB:AA'):
+                    if mutation_type in ('AB:BB',):#not in ('AB:AA', 'AA:AB', 'AA:BB', 'BB:AA'): # these should give the same counts
                         murim[sample_name_normal][chrpos] = (mutation_type,
                                                              normal_call,
                                                              cancer_call)
@@ -130,12 +130,16 @@ for exome_type in global_settings.exome_types:
                float(100)*float(s)/float(i+s)))
         if exome_type == 'exome.aa_chg':
             dump_mu2a_input(murim[sample])
+        with open('working/murim.' + exome_type + '.vars', 'w') as outf:
+            for chrpos in murim[sample]:
+                outf.write(chrpos + '\n')
 sample = 'yusan'
 dump_mutants(total_murim_mutations[sample], 'working/somatic.new_mutants')
 dump_mutants(total_somatic_mutations[sample], 'working/total.new_mutants')
 # no unknown or introns for these, which is why I call them coding
-dump_mutants(total_somatic_exome_mutations[sample], 'working/somatic_coding.mutants')
+dump_mutants(total_somatic_exome_mutations[sample], 'working/somatic_coding.var')
 dump_mutants(total_inherited_exome_mutations[sample], 'working/inherited_coding.mutants')
+dump_mutants(total_somatic_mutations[sample], 'working/somatic_total.var')
 
 for sample in total_somatic_mutations:
     print 'total somatic', sample, len(total_somatic_mutations[sample])

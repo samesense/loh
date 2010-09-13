@@ -3,6 +3,34 @@ import os, sys
 sys.path.append('./')
 import global_settings
 
+@task
+def pure_aa_chg():
+    """Restrict mutations to only those in aa_chg"""
+
+    prev = 'working/exome.aa_chg.vars'
+    counter = 0
+    for exome in global_settings.exome_types:
+        if exome != 'exome.aa_chg':
+            outfile = 'working/aa_chg.pure' + str(counter) + '.vars'
+            sh('python subtract.py ' + prev + ' working/' + exome + '.vars > '
+               + outfile)
+            prev = outfile
+            counter += 1
+
+@task
+def murim_pure_aa_chg():
+    """Restrict mutations to only those in aa_chg"""
+
+    prev = 'working/murim.exome.aa_chg.vars'
+    counter = 0
+    for exome in global_settings.exome_types:
+        if exome != 'exome.aa_chg':
+            outfile = 'working/murim.aa_chg.pure' + str(counter) + '.vars'
+            sh('python subtract.py ' + prev + ' working/' + exome + '.vars > '
+               + outfile)
+            prev = outfile
+            counter += 1
+
 @task 
 def mixture():
     """Find mixture between cancer and normal. Call cnv_seq before this."""
