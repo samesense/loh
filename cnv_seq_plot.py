@@ -11,6 +11,9 @@ subdir = sys.argv[3] # exome | all_non_ref
 png = sys.argv[4]
 
 # CNV plot
+os.system('rm working/cnv_seq/CNV/' 
+          + subdir + '/' 
+          + input.split('.coverage')[0]  + '.cnvs')
 with open(rtmp, 'w') as f:
     f.write("source('funcs.R')\n")
     f.write('library(cnv)\n')

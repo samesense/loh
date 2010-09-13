@@ -38,18 +38,20 @@ def mixture():
     for subdir in ('exome', 'all_non_ref'):
         for exome_type in global_settings.exome_types:
             for cancer, normal in global_settings.pairs:
-                sh('python find_mixture.py '
-                   + 'working/' + exome_type.replace('.', '_') + '/hg19_murim.' + cancer + ' '
-                   + 'working/cnv_seq/CNV/' + subdir + '/' + exome_type + '.' + cancer + '.cnvs '
-                   + '> working/mixture/' + subdir + '/' + exome_type + '.' + cancer + '.mix')
-                
+                cnv_file = 'working/cnv_seq/CNV/' + subdir + '/' + exome_type + '.' + cancer + '.cnvs'
+                if os.path.exists(cnv_file):
+                    sh('python find_mixture.py '
+                       + 'working/' + exome_type.replace('.', '_') + '/hg19_murim.' + cancer + ' '
+                       + cnv_file 
+                       + ' > working/mixture/' + subdir + '/' + exome_type + '.' + cancer + '.mix')
+                    
 @task
 def cnv_seq():
     """Run cnv_seq"""
 
     #sh('python cnv_plot.py')
     # all_non_ref
-    for subdir in ('exome',):
+    for subdir in ('exome', 'all_non_ref'):
         for exome in global_settings.exome_types:
             for cancer, normal in global_settings.pairs:
                 cancer_hits = 'working/cnv_seq/' + subdir + '/' + exome + '.'  + cancer + '.coverage.hits'
@@ -64,10 +66,10 @@ def cnv_seq():
                        + 'working/' + exome.replace('.','_') + '/hg19_murim.' + cancer + ' '
                        + subdir + ' '
                        + 'plots/cnv-seq/' + subdir + '/' + exome + '.' + cancer + '.png')
-                    #sh('montage -geometry 500 -quality 100 -tile 1x2 '
-                    #   + 'plots/cnv-seq/' + subdir + '/' + exome + '.' + cancer + '.png '
-                    #   + 'plots/cnv-seq/' + subdir + '/' + exome + '.' + cancer + '.murim.png '
-                    #   + 'plots/cnv-seq/' + subdir + '/' + exome + '.' + cancer + '.both.png')
+                    sh('montage -geometry 500 -quality 100 -tile 1x2 '
+                       + 'plots/cnv-seq/' + subdir + '/' + exome + '.' + cancer + '.png '
+                       + 'plots/cnv-seq/' + subdir + '/' + exome + '.' + cancer + '.murim.png '
+                       + 'plots/cnv-seq/' + subdir + '/' + exome + '.' + cancer + '.both.png')
 
 @task
 def loh_homo():

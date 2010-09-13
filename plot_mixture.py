@@ -3,21 +3,21 @@ import global_settings, random, os
 
 random.seed()
 
-subdir = 'exome'
+subdir = 'all_non_ref' #'exome'
 rinput = 'rinput' + str(random.randint(0,1000))
 working_dir = os.path.join('working/mixture/', subdir + '/')
 with open(rinput, 'w') as f:
     f.write('Sample\tExome\tChr\tMixture\n')
     for exome_type in global_settings.exome_types:
         for cancer, normal in global_settings.pairs:
-            with open(working_dir 
-                      + exome_type + '.' 
-                      + cancer + '.mix') as mixfile:
-                for line in mixfile:
-                    chr, snp_count, avg_diff = line.strip().split('\t')
-                    f.write('%s\t%s\t%s\t%f\n' %
-                            (cancer, exome_type.split('.')[1], chr, 
-                             float(0.5)-float(avg_diff)))
+            mix_file_name = working_dir + exome_type + '.' + cancer + '.mix'
+            if os.path.exists(mix_file_name):
+                with open(mix_file_name) as mixfile:
+                    for line in mixfile:
+                        chr, snp_count, avg_diff = line.strip().split('\t')
+                        f.write('%s\t%s\t%s\t%f\n' %
+                                (cancer, exome_type.split('.')[1], chr, 
+                                 float(0.5)-float(avg_diff)))
 
 # make R calls
 rtmp = 'rtmp' + str(random.randint(0,1000))
@@ -30,6 +30,6 @@ with open(rtmp, 'w') as f:
     f.write('q()\n')
 
 os.system('R --vanilla < ' + rtmp)
-#os.system('rm ' + rinput + ' ' + rtmp)
+os.system('rm ' + rinput + ' ' + rtmp)
         
 
