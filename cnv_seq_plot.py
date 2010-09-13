@@ -1,5 +1,6 @@
 """R commands for cnv-seq plot & Murim's plot. I compare the two to find the mixture between normal and cancer cells. This also outputs the CNVs to working/cnv-seq/CNV/"""
 import sys, os, random
+import utils
 
 random.seed()
 
@@ -8,7 +9,6 @@ input = sys.argv[1]
 murim_input = sys.argv[2]
 subdir = sys.argv[3] # exome | all_non_ref
 png = sys.argv[4]
-
 
 # CNV plot
 with open(rtmp, 'w') as f:
@@ -22,7 +22,8 @@ with open(rtmp, 'w') as f:
     f.write("cnv.print(data, file='working/cnv_seq/CNV/" + subdir + '/' + input.split('.coverage')[0]  + ".cnvs')\n")
     f.write('q()\n')
 
-os.system('R --vanilla < ' + rtmp)
+if utils.check_input(input):
+    os.system('R --vanilla < ' + rtmp)
 
 # Murim's plot
 with open(rtmp, 'w') as f:
@@ -34,7 +35,8 @@ with open(rtmp, 'w') as f:
     f.write('dev.off()\n')
     f.write('q()\n')
 
-os.system('R --vanilla < ' + rtmp)
+if utils.check_input(murim_input):
+    os.system('R --vanilla < ' + rtmp)
 
 os.system('rm ' + rtmp)
 os.system('mv ' + input + ' working/cnv_seq/CNV/' + subdir + '/')

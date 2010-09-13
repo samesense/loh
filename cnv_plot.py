@@ -243,7 +243,7 @@ for afile in global_settings.exome_types:
 #            plots[sample] = file_name
     for cancer, normal in global_settings.pairs:
         cov_ratio_file = os.path.join(plot_dir, exome_dir + '.' + afile + '.' + cancer + '.coverage.png')
-        plot_coverage_ratio(coverages, cancer, normal, cov_ratio_file)
+        #plot_coverage_ratio(coverages, cancer, normal, cov_ratio_file)
         cnv_seq_cancer_file = os.path.join(cnv_seq_dir, exome_dir, afile + '.' + cancer + '.coverage.hits')
         cnv_seq_normal_file = os.path.join(cnv_seq_dir, exome_dir, afile + '.' + normal + '.coverage.hits')
         mk_cnv_seq(coverages, cancer, normal, cnv_seq_cancer_file, cnv_seq_normal_file)
