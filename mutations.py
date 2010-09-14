@@ -38,12 +38,12 @@ def dump_mutants(chrpos2mutant, dumpfile):
             f.write('%s\t%s\t%s\t%s\t%s\n' %
                     (chr, pos, mutant, normal_call, cancer_call))
  
-def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff, cmp_murim):
+def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff, cmp_murim, coverage_cutoff):
     """Count mutations AA:BB, AB:AA ... from raw data file"""
 
     if cmp_murim:
-        limiting_locations_normal = cmp_murim_mutations_yusan.load_murims_calls('data/murim/yusanN/EX_BLD1_1ln.snpfilter_anno_shortall_v1.62.txt', quality_cutoff)
-        limiting_locations_cancer = cmp_murim_mutations_yusan.load_murims_calls('data/murim/yusanT/EX_CANC_1ln.snpfilter_anno_shortall_v1.62.txt', quality_cutoff)
+        limiting_locations_normal = cmp_murim_mutations_yusan.load_murims_calls('/home/perry/Projects/loh/data/murim/yusanN/EX_BLD1_1ln.snpfilter_anno_shortall_v1.62.txt', quality_cutoff)
+        limiting_locations_cancer = cmp_murim_mutations_yusan.load_murims_calls('/home/perry/Projects/loh/data/murim/yusanT/EX_CANC_1ln.snpfilter_anno_shortall_v1.62.txt', quality_cutoff)
         limiting_locations = set(limiting_locations_normal.keys()) & set(limiting_locations_cancer.keys())
 
     inherited = defaultdict(dict)
@@ -73,7 +73,7 @@ def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff, cmp
 
             (avg_snp_quality, min_snp_quality, 
              max_snp_quality) = (float(x) for x in sp[14:17])
-            if normal_qualities[chrpos] > quality_cutoff and cancer_qualities[chrpos] > quality_cutoff and normal_coverage >= 8 and cancer_coverage >= 8 and max_snp_quality > quality_cutoff:
+            if normal_qualities[chrpos] > quality_cutoff and cancer_qualities[chrpos] > quality_cutoff and normal_coverage >= coverage_cutoff and cancer_coverage >= coverage_cutoff and max_snp_quality > quality_cutoff:
                 if cmp_murim and chrpos not in limiting_locations:
                     pass
                 else:
@@ -101,9 +101,10 @@ def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff, cmp
 def main():
     """Call by default"""
 
-    quality_cutoff = float(100)
+    quality_cutoff = float(-1)
+    coverage_cutoff = int(-1)
     use_data_dir = 'data/all_non_ref_hg18/' # | data/all_non_ref_hg19/
-    cmp_murim = True
+    cmp_murim = False
     # grab consensus qualities from *ann files
     cancer_qualities = get_consensus_qualities(use_data_dir + 'yusanT.ann')
     normal_qualities = get_consensus_qualities(use_data_dir + 'yusanN.ann')
@@ -118,7 +119,7 @@ def main():
                                  exome_type)
         inherited, somatic, murim = get_mutations(data_file, normal_qualities,
                                                   cancer_qualities, quality_cutoff,
-                                                  cmp_murim)
+                                                  cmp_murim, coverage_cutoff)
         for sample in inherited:
             i = len(inherited[sample].keys())
             s = len(somatic[sample].keys())
