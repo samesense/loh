@@ -1,6 +1,7 @@
 """Use the all_non_ref files to find somatic and inherited mutations. Use consensus quality from *ann files to find quality cutoffs."""
 import global_settings, os, sys
 from collections import defaultdict
+import cmp_murim_mutations_yusan
 
 def get_consensus_qualities(afile):
     """Grab quality score for all calls. This is parsing the pileup output"""
@@ -37,8 +38,13 @@ def dump_mutants(chrpos2mutant, dumpfile):
             f.write('%s\t%s\t%s\t%s\t%s\n' %
                     (chr, pos, mutant, normal_call, cancer_call))
  
-def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff):
+def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff, cmp_murim):
     """Count mutations AA:BB, AB:AA ... from raw data file"""
+
+    if cmp_murim:
+        limiting_locations_normal = cmp_murim_mutations_yusan.load_murims_calls('data/murim/yusanN/EX_BLD1_1ln.snpfilter_anno_shortall_v1.62.txt', quality_cutoff)
+        limiting_locations_cancer = cmp_murim_mutations_yusan.load_murims_calls('data/murim/yusanT/EX_CANC_1ln.snpfilter_anno_shortall_v1.62.txt', quality_cutoff)
+        limiting_locations = set(limiting_locations_normal.keys()) & set(limiting_locations_cancer.keys())
 
     inherited = defaultdict(dict)
     somatic = defaultdict(dict)
@@ -68,32 +74,36 @@ def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff):
             (avg_snp_quality, min_snp_quality, 
              max_snp_quality) = (float(x) for x in sp[14:17])
             if normal_qualities[chrpos] > quality_cutoff and cancer_qualities[chrpos] > quality_cutoff and normal_coverage >= 8 and cancer_coverage >= 8 and max_snp_quality > quality_cutoff:
-                if mutation_type == 'AA:AA':
+                if cmp_murim and chrpos not in limiting_locations:
                     pass
-                elif mutation_type in ('BB:BB', 'AB:AB'):
-                    inherited[sample_name_normal][chrpos] = (mutation_type,
-                                                             normal_call,
-                                                             cancer_call)
-                elif normal_call != cancer_call:
-                    somatic[sample_name_normal][chrpos] = (mutation_type,
-                                                           normal_call,
-                                                           cancer_call)
-                    # murim can only see mutations 
-                    # that differ from the reference
-                    # only the first case matters
-                    # at this quality cutoff
-                    if mutation_type in ('AB:BB',):#not in ('AB:AA', 'AA:AB', 'AA:BB', 'BB:AA'): # these should give the same counts
-                        murim[sample_name_normal][chrpos] = (mutation_type,
-                                                             normal_call,
-                                                             cancer_call)
+                else:
+                    if mutation_type == 'AA:AA':
+                        pass
+                    elif mutation_type in ('BB:BB', 'AB:AB'):
+                        inherited[sample_name_normal][chrpos] = (mutation_type,
+                                                                 normal_call,
+                                                                 cancer_call)
+                    elif normal_call != cancer_call:
+                        somatic[sample_name_normal][chrpos] = (mutation_type,
+                                                               normal_call,
+                                                               cancer_call)
+                        # murim can only see mutations 
+                        # that differ from the reference
+                        # only the first case matters
+                        # at this quality cutoff
+                        if mutation_type in ('AB:BB',):#not in ('AB:AA', 'AA:AB', 'AA:BB', 'BB:AA'): # these should give the same counts
+                            murim[sample_name_normal][chrpos] = (mutation_type,
+                                                                 normal_call,
+                                                                 cancer_call)
 
     return (inherited, somatic, murim)
 
 quality_cutoff = float(100)
-
+use_data_dir = 'data/all_non_ref_hg18/' # | data/all_non_ref_hg19/
+cmp_murim = True
 # grab consensus qualities from *ann files
-cancer_qualities = get_consensus_qualities('data/all_non_ref/yusanT.ann')
-normal_qualities = get_consensus_qualities('data/all_non_ref/yusanN.ann')
+cancer_qualities = get_consensus_qualities(use_data_dir + 'yusanT.ann')
+normal_qualities = get_consensus_qualities(use_data_dir + 'yusanN.ann')
 
 total_somatic_mutations = defaultdict(dict)
 total_inherited_mutations = defaultdict(dict)
@@ -101,10 +111,11 @@ total_murim_mutations = defaultdict(dict)
 total_somatic_exome_mutations = defaultdict(dict)
 total_inherited_exome_mutations = defaultdict(dict)
 for exome_type in global_settings.exome_types:
-    data_file = os.path.join('data/all_non_ref/',
+    data_file = os.path.join(use_data_dir,
                              exome_type)
     inherited, somatic, murim = get_mutations(data_file, normal_qualities,
-                                              cancer_qualities, quality_cutoff)
+                                              cancer_qualities, quality_cutoff,
+                                              cmp_murim)
     for sample in inherited:
         i = len(inherited[sample].keys())
         s = len(somatic[sample].keys())

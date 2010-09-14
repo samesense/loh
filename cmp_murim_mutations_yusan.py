@@ -95,44 +95,49 @@ def load_murims_calls(afile, quality_cutoff):
                         calls[chr+':'+base] = call.upper()
     return calls
 
-quality_cut = 100
-murim_data_dir = 'data/murim/'
-#murim_suffix_normal = 'EX_BLD1_1ln.snpfilter_anno_v1.62.txt'
-#murim_suffix_cancer = 'EX_CANC_1ln.snpfilter_anno_v1.62.txt'
-murim_suffix_normal = 'EX_BLD1_1ln.snpfilter_anno_shortall_v1.62.txt'
-murim_suffix_cancer = 'EX_CANC_1ln.snpfilter_anno_shortall_v1.62.txt'
-our_data_dir = 'data/raw_hg18/'
-our_suffix = 's_5.var'
+def main():
+    """Call be default"""
 
-us_normal = load_our_calls(os.path.join(our_data_dir,
-                                        'yusanN', our_suffix),
-                           quality_cut)
-us_cancer = load_our_calls(os.path.join(our_data_dir,
-                                        'yusanT', our_suffix),
-                           quality_cut)
-us_mutants, us_chrpos = get_mutations(us_normal, us_cancer)
-dump_mutants(us_mutants)
+    quality_cut = 100
+    murim_data_dir = 'data/murim/'
+    #murim_suffix_normal = 'EX_BLD1_1ln.snpfilter_anno_v1.62.txt'
+    #murim_suffix_cancer = 'EX_CANC_1ln.snpfilter_anno_v1.62.txt'
+    murim_suffix_normal = 'EX_BLD1_1ln.snpfilter_anno_shortall_v1.62.txt'
+    murim_suffix_cancer = 'EX_CANC_1ln.snpfilter_anno_shortall_v1.62.txt'
+    our_data_dir = 'data/raw_hg18/'
+    our_suffix = 's_5.var'
 
-print 'US normal/cancer mutants'
-print str(len(us_normal)) + '/' + str(len(us_cancer)), len(us_mutants)
+    us_normal = load_our_calls(os.path.join(our_data_dir,
+                                            'yusanN', our_suffix),
+                               quality_cut)
+    us_cancer = load_our_calls(os.path.join(our_data_dir,
+                                            'yusanT', our_suffix),
+                               quality_cut)
+    us_mutants, us_chrpos = get_mutations(us_normal, us_cancer)
+    dump_mutants(us_mutants)
 
-murim_normal = load_murims_calls(os.path.join(murim_data_dir,
-                                              'yusanN',
-                                              murim_suffix_normal), 
-                                 quality_cut)
-murim_cancer = load_murims_calls(os.path.join(murim_data_dir,
-                                              'yusanT',
-                                              murim_suffix_cancer), 
-                                 quality_cut)
-murim_mutants, murim_chrpos = get_mutations(murim_normal, murim_cancer)
+    print 'US normal/cancer mutants'
+    print str(len(us_normal)) + '/' + str(len(us_cancer)), len(us_mutants)
 
-murim_limited_mutants = get_mutations_limited(murim_normal, murim_cancer, us_chrpos)
-us_limited_mutants = get_mutations_limited(us_normal, us_cancer, murim_chrpos)
+    murim_normal = load_murims_calls(os.path.join(murim_data_dir,
+                                                  'yusanN',
+                                                  murim_suffix_normal), 
+                                     quality_cut)
+    murim_cancer = load_murims_calls(os.path.join(murim_data_dir,
+                                                  'yusanT',
+                                                  murim_suffix_cancer), 
+                                     quality_cut)
+    murim_mutants, murim_chrpos = get_mutations(murim_normal, murim_cancer)
 
-print 'murim normal/cancer mutants'
-print str(len(murim_normal)) + '/' +  str(len(murim_cancer)), len(murim_mutants)
+    murim_limited_mutants = get_mutations_limited(murim_normal, murim_cancer, us_chrpos)
+    us_limited_mutants = get_mutations_limited(us_normal, us_cancer, murim_chrpos)
 
-print 'us normal, murim normal differences', len(get_mutations(murim_normal, us_normal))
-print 'final mutation estimates us/murim', str(len(us_limited_mutants))+ '/'+ str(len(murim_limited_mutants)), len(set(us_limited_mutants.keys()) & set(murim_limited_mutants.keys())), len(cmp_us_murim(us_limited_mutants, murim_limited_mutants))
+    print 'murim normal/cancer mutants'
+    print str(len(murim_normal)) + '/' +  str(len(murim_cancer)), len(murim_mutants)
 
+    print 'us normal, murim normal differences', len(get_mutations(murim_normal, us_normal))
+    print 'final mutation estimates us/murim', str(len(us_limited_mutants))+ '/'+ str(len(murim_limited_mutants)), len(set(us_limited_mutants.keys()) & set(murim_limited_mutants.keys())), len(cmp_us_murim(us_limited_mutants, murim_limited_mutants))
+
+if __name__ == '__main__':
+    main()
 
