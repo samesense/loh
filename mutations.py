@@ -98,72 +98,77 @@ def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff, cmp
 
     return (inherited, somatic, murim)
 
-quality_cutoff = float(100)
-use_data_dir = 'data/all_non_ref_hg18/' # | data/all_non_ref_hg19/
-cmp_murim = True
-# grab consensus qualities from *ann files
-cancer_qualities = get_consensus_qualities(use_data_dir + 'yusanT.ann')
-normal_qualities = get_consensus_qualities(use_data_dir + 'yusanN.ann')
+def main():
+    """Call by default"""
 
-total_somatic_mutations = defaultdict(dict)
-total_inherited_mutations = defaultdict(dict)
-total_murim_mutations = defaultdict(dict)
-total_somatic_exome_mutations = defaultdict(dict)
-total_inherited_exome_mutations = defaultdict(dict)
-for exome_type in global_settings.exome_types:
-    data_file = os.path.join(use_data_dir,
-                             exome_type)
-    inherited, somatic, murim = get_mutations(data_file, normal_qualities,
-                                              cancer_qualities, quality_cutoff,
-                                              cmp_murim)
-    for sample in inherited:
-        i = len(inherited[sample].keys())
-        s = len(somatic[sample].keys())
-        m = len(murim[sample].keys())
+    quality_cutoff = float(100)
+    use_data_dir = 'data/all_non_ref_hg18/' # | data/all_non_ref_hg19/
+    cmp_murim = True
+    # grab consensus qualities from *ann files
+    cancer_qualities = get_consensus_qualities(use_data_dir + 'yusanT.ann')
+    normal_qualities = get_consensus_qualities(use_data_dir + 'yusanN.ann')
 
-        if exome_type not in ('exome.intron', 'exome.unknown'):
+    total_somatic_mutations = defaultdict(dict)
+    total_inherited_mutations = defaultdict(dict)
+    total_murim_mutations = defaultdict(dict)
+    total_somatic_exome_mutations = defaultdict(dict)
+    total_inherited_exome_mutations = defaultdict(dict)
+    for exome_type in global_settings.exome_types:
+        data_file = os.path.join(use_data_dir,
+                                 exome_type)
+        inherited, somatic, murim = get_mutations(data_file, normal_qualities,
+                                                  cancer_qualities, quality_cutoff,
+                                                  cmp_murim)
+        for sample in inherited:
+            i = len(inherited[sample].keys())
+            s = len(somatic[sample].keys())
+            m = len(murim[sample].keys())
+
+            if exome_type not in ('exome.intron', 'exome.unknown'):
+                for chrpos in somatic[sample]:
+                    total_somatic_exome_mutations[sample][chrpos] = somatic[sample][chrpos]
+                for chrpos in inherited[sample]:
+                    total_inherited_exome_mutations[sample][chrpos] = inherited[sample][chrpos]
+
             for chrpos in somatic[sample]:
-                total_somatic_exome_mutations[sample][chrpos] = somatic[sample][chrpos]
-            for chrpos in inherited[sample]:
-                total_inherited_exome_mutations[sample][chrpos] = inherited[sample][chrpos]
+                total_somatic_mutations[sample][chrpos] = somatic[sample][chrpos]
 
-        for chrpos in somatic[sample]:
-            total_somatic_mutations[sample][chrpos] = somatic[sample][chrpos]
-
-        for chrpos in murim[sample]:
-            total_murim_mutations[sample][chrpos] = murim[sample][chrpos]
-            
-        for chrpos in inherited[sample]:
-            total_inherited_mutations[sample][chrpos] = inherited[sample][chrpos]
-
-        print('%s\t%s\t%d\t%d\t%d\t%.2f' %
-              (exome_type, sample, i, s, m,
-               float(100)*float(s)/float(i+s)))
-        if exome_type == 'exome.aa_chg':
-            dump_mu2a_input(murim[sample])
-        with open('working/murim.' + exome_type + '.vars', 'w') as outf:
             for chrpos in murim[sample]:
-                outf.write(chrpos + '\n')
-sample = 'yusan'
-dump_mutants(total_murim_mutations[sample], 'working/somatic.new_mutants')
-dump_mutants(total_somatic_mutations[sample], 'working/total.new_mutants')
-# no unknown or introns for these, which is why I call them coding
-dump_mutants(total_somatic_exome_mutations[sample], 'working/somatic_coding.var')
-dump_mutants(total_inherited_exome_mutations[sample], 'working/inherited_coding.mutants')
-dump_mutants(total_somatic_mutations[sample], 'working/somatic_total.var')
+                total_murim_mutations[sample][chrpos] = murim[sample][chrpos]
 
-for sample in total_somatic_mutations:
-    print 'total somatic', sample, len(total_somatic_mutations[sample])
-    print 'total murim', sample, len(total_murim_mutations[sample])
-    coding_somatic = len(total_somatic_exome_mutations[sample])
-    coding_inherited = len(total_inherited_exome_mutations[sample])
-    coding_total = float(coding_somatic + coding_inherited)
-    total_somatic = len(total_somatic_mutations[sample])
-    total_inherited = len(total_inherited_mutations[sample])
-    all_total = total_somatic + total_inherited
-    print 'total somatic exome', sample, coding_somatic, float(100)*float(coding_somatic)/float(coding_total)
-    print 'total inherited exome', sample, coding_inherited, float(100)*float(coding_inherited)/float(coding_total)
+            for chrpos in inherited[sample]:
+                total_inherited_mutations[sample][chrpos] = inherited[sample][chrpos]
 
-    print 'total somatic', sample, total_somatic, float(100)*float(total_somatic)/float(all_total)
-    print 'total inherited', sample, total_inherited, float(100)*float(total_inherited)/float(all_total)
+            print('%s\t%s\t%d\t%d\t%d\t%.2f' %
+                  (exome_type, sample, i, s, m,
+                   float(100)*float(s)/float(i+s)))
+            if exome_type == 'exome.aa_chg':
+                dump_mu2a_input(murim[sample])
+            with open('working/murim.' + exome_type + '.vars', 'w') as outf:
+                for chrpos in murim[sample]:
+                    outf.write(chrpos + '\n')
+    sample = 'yusan'
+    dump_mutants(total_murim_mutations[sample], 'working/somatic.new_mutants')
+    dump_mutants(total_somatic_mutations[sample], 'working/total.new_mutants')
+    # no unknown or introns for these, which is why I call them coding
+    dump_mutants(total_somatic_exome_mutations[sample], 'working/somatic_coding.var')
+    dump_mutants(total_inherited_exome_mutations[sample], 'working/inherited_coding.mutants')
+    dump_mutants(total_somatic_mutations[sample], 'working/somatic_total.var')
 
+    for sample in total_somatic_mutations:
+        print 'total somatic', sample, len(total_somatic_mutations[sample])
+        print 'total murim', sample, len(total_murim_mutations[sample])
+        coding_somatic = len(total_somatic_exome_mutations[sample])
+        coding_inherited = len(total_inherited_exome_mutations[sample])
+        coding_total = float(coding_somatic + coding_inherited)
+        total_somatic = len(total_somatic_mutations[sample])
+        total_inherited = len(total_inherited_mutations[sample])
+        all_total = total_somatic + total_inherited
+        print 'total somatic exome', sample, coding_somatic, float(100)*float(coding_somatic)/float(coding_total)
+        print 'total inherited exome', sample, coding_inherited, float(100)*float(coding_inherited)/float(coding_total)
+
+        print 'total somatic', sample, total_somatic, float(100)*float(total_somatic)/float(all_total)
+        print 'total inherited', sample, total_inherited, float(100)*float(total_inherited)/float(all_total)
+
+if __name__ == '__main__':
+    main()
