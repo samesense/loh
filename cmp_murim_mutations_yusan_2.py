@@ -1,6 +1,6 @@
 """I'm trying to figure out why we have ~200 more mutations that Murim"""
 import os, sys, global_settings
-import cmp_murim_mutations_yusan, mutations
+import cmp_murim_mutations_yusan, mutations, bed_tools
 
 def get_murim_covered(quality_cut):
     """Load chr locations from EX_CANC_1ln.snpfilter_anno_shortall_v1.62.txt for cancer and normal. If he doesn't have calls for both cancer and normal, I'm throwing it out of the comparison"""
@@ -27,6 +27,12 @@ def get_my_mutations(quality_cutoff, coverage_cutoff):
     #         my_mutations[line.strip()] = True
     # return my_mutations
 
+    bed_file = 'data/nimblegen/2.1M_Human_Exome_Annotation/2.1M_Human_Exome.bed'
+    bed_chr2st2end, bed_chr2posLs = bed_tools.load_bed(bed_file, 
+                                                       'NimbleGen Tiled Regions')
+    # NimbleGen Tiled Regions
+    # Target Regions
+
     use_data_dir = '/home/perry/Projects/loh/data/all_non_ref_hg18/'
     all_somatic = {}
     all_inherited = {}
@@ -37,8 +43,18 @@ def get_my_mutations(quality_cutoff, coverage_cutoff):
         inherited, somatic, murim = mutations.get_mutations(data_file, normal_qualities,
                                                             cancer_qualities, quality_cutoff,
                                                             False, coverage_cutoff)
-        for s in somatic['yusan']: all_somatic[s] = True
-        for i in inherited['yusan']: all_inherited[i] = True
+        for s in somatic['yusan']: 
+            chr, pos = s.split(':')
+            if bed_tools.find_location_in_bed(chr, int(pos), 
+                                              bed_chr2posLs,
+                                              bed_chr2st2end):
+                all_somatic[s] = True
+        for i in inherited['yusan']: 
+            chr, pos = s.split(':')
+            if bed_tools.find_location_in_bed(chr, int(pos), 
+                                              bed_chr2posLs,
+                                              bed_chr2st2end):
+                all_inherited[i] = True
     return (all_somatic, all_inherited)
 
 def remove_deletions(murim_mutations):

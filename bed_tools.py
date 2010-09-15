@@ -45,7 +45,7 @@ def find_ge(a, x):
 def find_location_in_bed(chr, pos, bed_struct, chr2st2end):
     """Find this position in bed_struct. If found, return st and stp, 
        else False"""
-    
+
     if 'chr' not in chr:
         raise ValueError
     

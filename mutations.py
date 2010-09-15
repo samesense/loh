@@ -73,7 +73,7 @@ def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff, cmp
 
             (avg_snp_quality, min_snp_quality, 
              max_snp_quality) = (float(x) for x in sp[14:17])
-            if normal_qualities[chrpos] > quality_cutoff and cancer_qualities[chrpos] > quality_cutoff and normal_coverage >= coverage_cutoff and cancer_coverage >= coverage_cutoff and max_snp_quality > quality_cutoff:
+            if normal_qualities[chrpos] > quality_cutoff and cancer_qualities[chrpos] > quality_cutoff and normal_coverage >= coverage_cutoff and cancer_coverage >= coverage_cutoff and max_snp_quality > quality_cutoff and '_' not in chr and 'M' not in chr:
                 if cmp_murim and chrpos not in limiting_locations:
                     pass
                 else:
