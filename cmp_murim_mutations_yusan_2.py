@@ -25,16 +25,26 @@ def get_my_mutations(quality_cutoff, coverage_cutoff):
         for i in inherited['yusan']: all_inherited[i] = True
     return (all_somatic, all_inherited)
 
+def remove_deletions(murim_mutations):
+    """Trying to figure out why we are different from Murim.
+       I see that we don't have calls for positions because
+       the calls are bad; mostly deletions.
+       I'm removing these from Murim's mutations"""
+
+    pass
+
 def get_murim_mutations(quality_cutoff):
     """Get somatic (not coding) mutations above some quality"""
 
     os.system("grep somatic /home/perry/Projects/loh/data/murim/CANCER_specific.csv | cut -f 3,4,10 > /home/perry/Projects/loh/data/murim/somatic_coding_parsed_chr_pos_qual")
+    
     murim_mutations = {}
     with open('/home/perry/Projects/loh/data/murim/somatic_coding_parsed_chr_pos_qual') as f:
         for line in f:
             sp = line.strip().split('\t')
             if float(sp[-1]) > float(quality_cutoff): # murim uses 80
                 murim_mutations[sp[0] + ':' + sp[1]] = True
+    remove_deletions(murim_mutations)
     return murim_mutations
 
 #print 'both', len(set(my_mutations) & set(murim_mutations))
