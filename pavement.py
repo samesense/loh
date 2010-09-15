@@ -35,7 +35,9 @@ def murim_pure_aa_chg():
 def mixture():
     """Find mixture between cancer and normal. Call cnv_seq before this."""
 
-    for subdir in ('exome', 'all_non_ref'):
+    for subdir in ('exome', 'all_non_ref_hg19'):
+        sh('mkdir -p working/mixture/')
+        sh('mkdir -p working/mixture/' + subdir)
         for exome_type in global_settings.exome_types:
             for cancer, normal in global_settings.pairs:
                 cnv_file = 'working/cnv_seq/CNV/' + subdir + '/' + exome_type + '.' + cancer + '.cnvs'
@@ -51,7 +53,8 @@ def cnv_seq():
 
     #sh('python cnv_plot.py')
     # all_non_ref
-    for subdir in ('exome', 'all_non_ref'):
+    for subdir in ('exome', 'all_non_ref_hg19'):
+        sh('mkdir -p ' + os.path.join('plots', 'cnv-seq', subdir))
         for exome in global_settings.exome_types:
             for cancer, normal in global_settings.pairs:
                 cancer_hits = 'working/cnv_seq/' + subdir + '/' + exome + '.'  + cancer + '.coverage.hits'

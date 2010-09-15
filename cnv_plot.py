@@ -214,13 +214,25 @@ def get_coverage_all_non_ref(afile):
                 idx += 5
     return coverages
 
+def combine_all_non_ref_data():
+    """Cat all exome types in data/all_non_ref_hg19"""
+
+    for exome in global_settings.exome_types:
+        cat_line = 'cat '
+        for all_ref_subdir in ('yuaker', 'yuiri', 'yuiskia', 'yunoca091225T', 'yusan'):
+            cat_line = cat_line + 'data/all_non_ref_hg19/' + all_ref_subdir + '/' + exome + ' '
+        os.system(cat_line + '> data/all_non_ref_hg19/' + exome)
+
 data_dir = 'data/'
 exome_dir = 'exome'
-full_data_dir = 'all_non_ref/'
+full_data_dir = 'all_non_ref_hg19/'
 plot_dir = 'plots/cnv/'
 cnv_seq_dir = 'working/cnv_seq/'
 
 os.system('mkdir -p ' + plot_dir)
+os.system('mkdir -p ' + cnv_seq_dir)
+for adir in (exome_dir, full_data_dir):
+    os.system('mkdir -p ' + os.path.join(cnv_seq_dir, adir))
 paired_data = []
 for cancer, normal in global_settings.pairs:
     paired_data.append(cancer)
@@ -253,7 +265,9 @@ for afile in global_settings.exome_types:
  #                     + os.path.join(plot_dir, afile + '.' + cancer + '.cmp.png'))
 
 
+        
     # do the same for the more complete dataset (data/all_non_ref/)
+    combine_all_non_ref_data()
     file = os.path.join(data_dir, full_data_dir, afile)
     coverages = get_coverage_all_non_ref(file)
     for cancer, normal in global_settings.pairs:

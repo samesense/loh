@@ -11,6 +11,9 @@ subdir = sys.argv[3] # exome | all_non_ref
 png = sys.argv[4]
 
 # CNV plot
+os.system('mkdir -p working/cnv_seq/CNV')
+os.system('mkdir -p working/cnv_seq/CNV/' 
+          + subdir + '/')
 os.system('rm working/cnv_seq/CNV/' 
           + subdir + '/' 
           + input.split('.coverage')[0]  + '.cnvs')

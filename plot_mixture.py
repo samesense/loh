@@ -3,7 +3,7 @@ import global_settings, random, os
 
 random.seed()
 
-subdir = 'all_non_ref' #'exome'
+subdir = 'all_non_ref_hg19' #'exome'
 rinput = 'rinput' + str(random.randint(0,1000))
 working_dir = os.path.join('working/mixture/', subdir + '/')
 with open(rinput, 'w') as f:

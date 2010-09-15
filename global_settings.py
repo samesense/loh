@@ -15,4 +15,14 @@ exome_types = ('exome.aa_chg', 'exome.intron',
 
 # used to make all_non_ref data look like exome data
 alias = {'yusanT':'yusan',
-         'yusanN':'yusanN'}
+         'yusanN':'yusanN',
+         'yuiriN':'yuiriN',
+         'yuiriT':'yuiri',
+         'yuakerT':'yuaker',
+         'yuakerN':'yuakerN',
+         'yuiskiaT':'yuiskia',
+         'yuiskiaN':'yuiskia',
+         'yunoca091225T':'yunoca091225T',
+         'yunoca091283P':'yunoca091283P',
+         'yunocaT':'yunoca091225T',
+         'yunocaN':'yunoca091283P'}
