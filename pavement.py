@@ -46,12 +46,14 @@ def mixture():
                        + 'working/' + exome_type.replace('.', '_') + '/hg19_murim.' + cancer + ' '
                        + cnv_file 
                        + ' > working/mixture/' + subdir + '/' + exome_type + '.' + cancer + '.mix')
-                    
+        sh('python plot_mixture.py '
+           + subdir)
+
 @task
 def cnv_seq():
     """Run cnv_seq"""
 
-    #sh('python cnv_plot.py')
+    sh('python cnv_plot.py')
     # all_non_ref
     for subdir in ('exome', 'all_non_ref_hg19'):
         sh('mkdir -p ' + os.path.join('plots', 'cnv-seq', subdir))

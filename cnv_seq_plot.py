@@ -7,7 +7,7 @@ random.seed()
 rtmp = 'rtmp' + str(random.randint(0,1000))
 input = sys.argv[1]
 murim_input = sys.argv[2]
-subdir = sys.argv[3] # exome | all_non_ref
+subdir = sys.argv[3] # exome | all_non_ref_hg19
 png = sys.argv[4]
 
 # CNV plot
@@ -29,7 +29,7 @@ with open(rtmp, 'w') as f:
     f.write('q()\n')
 
 if utils.check_input(input):
-    os.system('R --vanilla < ' + rtmp)
+    os.system('R CMD BATCH --vanilla ' + rtmp + ' tmpLog')
 
 # Murim's plot
 with open(rtmp, 'w') as f:
@@ -42,8 +42,8 @@ with open(rtmp, 'w') as f:
     f.write('q()\n')
 
 if utils.check_input(murim_input):
-    os.system('R --vanilla < ' + rtmp)
+    os.system('R CMD BATCH --vanilla ' + rtmp + ' tmpLog')
 
-os.system('rm ' + rtmp)
+os.system('rm ' + rtmp + ' tmpLog')
 os.system('mv ' + input + ' working/cnv_seq/CNV/' + subdir + '/')
 os.system('mv ' + input.replace('cnv', 'count') + ' working/cnv_seq/CNV/' + subdir + '/')

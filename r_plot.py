@@ -30,7 +30,7 @@ def do_file(path, filename, plot_dir, title):
         f.write("points(chrompos[,2],chrompos[,1]+MapInfo[,3],pch='.',col='red')\n")
         f.write("text(300000000/2,13.5,'" + title + "')\n")
         f.write('dev.off()\n')
-    os.system('R --vanilla < rtmp')
+    os.system('R CMD BATCH --vanilla rtmp tmpLog')
 
 working_dir = 'working'
 plot_dir = 'plots'
@@ -48,6 +48,6 @@ with open(rfile, 'w') as rfile:
                     path = os.path.join(subdir,
                                         filename)
                     write_file(path, filename, new_plot_dir, title, rfile)
-os.system('R --vanilla < rtmp')
-os.system('rm rtmp')
+os.system('R CMD BATCH --vanilla rtmp rlog')
+os.system('rm rtmp rlog')
 

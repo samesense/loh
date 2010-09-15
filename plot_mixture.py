@@ -1,9 +1,9 @@
 """Use R ggplot2 to plot the mixture for all exome types and cancer/normal pairs"""
-import global_settings, random, os
+import global_settings, random, os, sys
 
 random.seed()
 
-subdir = 'all_non_ref_hg19' #'exome'
+subdir = sys.argv[1] # 'all_non_ref_hg19' | 'exome'
 rinput = 'rinput' + str(random.randint(0,1000))
 working_dir = os.path.join('working/mixture/', subdir + '/')
 with open(rinput, 'w') as f:
@@ -29,7 +29,7 @@ with open(rtmp, 'w') as f:
     f.write('dev.off()\n')
     f.write('q()\n')
 
-os.system('R --vanilla < ' + rtmp)
+os.system('R CMD BATCH --vanilla ' + rtmp + ' tmpLog')
 os.system('rm ' + rinput + ' ' + rtmp)
         
 

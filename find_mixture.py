@@ -35,7 +35,7 @@ def get_cnvs(afile):
                 cnv, chr, st, end, size, log2, pval = line.strip().split('\t')
                 if log2 != 'NA':
                     # check for copy loss
-                    if float(log2) < float(-1):
+                    if float(log2) < float(-0.5):
                         cnvs[chr].append((int(st), int(end)))
     for chr in cnvs:
         cnvs[chr].sort()
@@ -62,4 +62,5 @@ def main():
     cnvs = get_cnvs(cnv_file)
     avg_diffs_per_chr(allele_diffs, cnvs)
 
-main()
+if __name__ == '__main__':
+    main()

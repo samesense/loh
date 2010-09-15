@@ -76,7 +76,8 @@ with open(rinput, 'w') as rout:
                                       filename.split('.')[-1] 
                                       + '.' + file_type + '.summary.png'),
                          title, col)
-os.system('R --vanilla < rtmp')
+os.system('R CMD BATCH --vanilla rtmp rLog')
+rm_ls.append('rLog')
 os.system('rm ' + ' '.join(rm_ls))
 for dir in os.listdir(working_dir):
     if 'exome' in dir:

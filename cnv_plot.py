@@ -53,7 +53,7 @@ def mk_r_signal_ratio_file(r_file, input_file, plot_file):
         f.write('dev.off()\n')
         f.write('q()\n')
         
-    os.system('R --vanilla < ' + r_file)
+    os.system('R CMD BATCH --vanilla ' + r_file + ' tmpLog')
 
 def plot_coverage_ratio(coverages, cancer, normal, plot_file):
     """For each chr, plot the coverage ratio of cancer to normal along the chr"""
@@ -102,7 +102,7 @@ def mk_r_file(input_file, r_file, plot_file):
         f.write("ggplot(data) + aes(x=Pos,y=RefFreq) + geom_point() + facet_grid(Chr~.) + opts(legend.position='none',title='Ref Freq') + ylim(c(0,1))\n")
         f.write('dev.off()\n')
         
-    os.system('R --vanilla < ' + r_file)
+    os.system('R CMD BATCH --vanilla ' + r_file + ' tmpLog')
 
 def mk_r_ratio_file(input_file, r_file, plot_file):
     """Write out R commands for allele ratio plot"""
@@ -116,7 +116,7 @@ def mk_r_ratio_file(input_file, r_file, plot_file):
         f.write("ggplot(data) + aes(x=Pos,y=LogRatio) + geom_point() + facet_grid(Chr~.) + opts(legend.position='none', title='Log Ratio')\n")
         f.write('dev.off()\n')
         
-    os.system('R --vanilla < ' + r_file)
+    os.system('R CMD BATCH --vanilla ' + r_file + ' tmpLog')
 
 def plot_ref_allele_freq(snps, plot_file):
     """Use R ggplot2 to plot the reference allele frequencies for each chr"""
