@@ -2,6 +2,22 @@
 import os, sys, global_settings
 import cmp_murim_mutations_yusan, mutations
 
+def get_murim_covered(quality_cut):
+    """Load chr locations from EX_CANC_1ln.snpfilter_anno_shortall_v1.62.txt for cancer and normal. If he doesn't have calls for both cancer and normal, I'm throwing it out of the comparison"""
+
+    murim_data_dir = 'data/murim/'
+    murim_suffix_normal = 'EX_BLD1_1ln.snpfilter_anno_shortall_v1.62.txt'
+    murim_suffix_cancer = 'EX_CANC_1ln.snpfilter_anno_shortall_v1.62.txt'
+    murim_normal = cmp_murim_mutations_yusan.load_murims_calls(os.path.join(murim_data_dir,
+                                                  'yusanN',
+                                                  murim_suffix_normal), 
+                                     quality_cut)
+    murim_cancer = cmp_murim_mutations_yusan.load_murims_calls(os.path.join(murim_data_dir,
+                                                  'yusanT',
+                                                  murim_suffix_cancer), 
+                                     quality_cut)
+    return set(murim_cancer.keys()) & set(murim_normal.keys())    
+
 def get_my_mutations(quality_cutoff, coverage_cutoff):
     """Load mutations from working/"""
 
@@ -45,7 +61,7 @@ def get_murim_mutations(quality_cutoff):
             if float(sp[-1]) > float(quality_cutoff): # murim uses 80
                 murim_mutations[sp[0] + ':' + sp[1]] = True
     remove_deletions(murim_mutations)
-    return murim_mutations
+    return set(murim_mutations.keys()) & set(get_murim_covered(quality_cutoff))
 
 #print 'both', len(set(my_mutations) & set(murim_mutations))
 #print 'us', len(my_mutations)
