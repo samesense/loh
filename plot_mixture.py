@@ -4,6 +4,7 @@ import global_settings, random, os, sys
 random.seed()
 
 subdir = sys.argv[1] # 'all_non_ref_hg19' | 'exome'
+snp_cut = int(sys.argv[2])
 rinput = 'rinput' + str(random.randint(0,1000))
 working_dir = os.path.join('working/mixture/', subdir + '/')
 with open(rinput, 'w') as f:
@@ -15,9 +16,10 @@ with open(rinput, 'w') as f:
                 with open(mix_file_name) as mixfile:
                     for line in mixfile:
                         chr, snp_count, avg_diff = line.strip().split('\t')
-                        f.write('%s\t%s\t%s\t%f\n' %
-                                (cancer, exome_type.split('.')[1], chr, 
-                                 float(0.5)-float(avg_diff)))
+                        if int(snp_count) > snp_cut:
+                            f.write('%s\t%s\t%s\t%f\n' %
+                                    (cancer, exome_type.split('.')[1], chr, 
+                                     float(0.5)-float(avg_diff)))
 
 # make R calls
 rtmp = 'rtmp' + str(random.randint(0,1000))

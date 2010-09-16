@@ -35,7 +35,7 @@ def get_cnvs(afile):
                 cnv, chr, st, end, size, log2, pval = line.strip().split('\t')
                 if log2 != 'NA':
                     # check for copy loss
-                    if float(log2) < float(-0.5):
+                    if float(log2) < float(-.8):
                         cnvs[chr].append((int(st), int(end)))
     for chr in cnvs:
         cnvs[chr].sort()

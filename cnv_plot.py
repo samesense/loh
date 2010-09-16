@@ -177,7 +177,7 @@ def get_ref_nonRef_allele_freqs(afile):
     return snps
 
 def get_coverage(afile):
-    """Get the coverage at each SNP from the exome file"""
+    """Get the coverage at each SNP from the exome file. Put in {} to prevent over counting"""
 
     coverages = defaultdict(dict)
     with open(afile) as f:
@@ -199,6 +199,7 @@ def get_coverage_all_non_ref(afile):
        The indexes are off by 1, so I created this new function.
        Use the aliases to make this data look like the exome data (ex yusanT->yusan)"""
 
+    # {} prevents over counting
     coverages = defaultdict(dict)
     with open(afile) as f:
         for line in f:

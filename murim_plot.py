@@ -296,7 +296,7 @@ def do_all_non_ref():
                     #                exome_type.replace('.', '_'),
                     #                'hg19_murim.' + cancer)
                     chr, pos = chrpos.split(':')
-                    outf.write(chr + '\t' + pos + '\t' + str(chrpos2diff[chrpos]) + '\n')
+                    outf.write(chr.split('chr')[1] + '\t' + pos + '\t' + str(chrpos2diff[chrpos]) + '\n')
     
 def main():  
     """Script entry"""
