@@ -73,6 +73,7 @@ def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff, cmp
 
             (avg_snp_quality, min_snp_quality, 
              max_snp_quality) = (float(x) for x in sp[14:17])
+
             if normal_qualities[chrpos] > quality_cutoff and cancer_qualities[chrpos] > quality_cutoff and normal_coverage >= coverage_cutoff and cancer_coverage >= coverage_cutoff and max_snp_quality > quality_cutoff and '_' not in chr and 'M' not in chr:
                 if cmp_murim and chrpos not in limiting_locations:
                     pass
@@ -98,10 +99,10 @@ def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff, cmp
 
                     # this checks the calls instead of the mutation type
                     # this will result in overlaps
-                    if cancer_call != normal_call and mutation_type in ('BB:BB', 'AB:AB'):
-                        somatic[sample_name_normal][chrpos] = ('perry', normal_call, cancer_call)
-                        # not sure if I should add to murim
-                        murim[sample_name_normal][chrpos] = ('perry', normal_call, cancer_call)
+                    # if cancer_call != normal_call and mutation_type in ('BB:BB', 'AB:AB'):
+                    #     somatic[sample_name_normal][chrpos] = ('perry', normal_call, cancer_call)
+                    #     # not sure if I should add to murim
+                    #     murim[sample_name_normal][chrpos] = ('perry', normal_call, cancer_call)
     return (inherited, somatic, murim)
 
 def main():
