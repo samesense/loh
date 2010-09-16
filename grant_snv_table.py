@@ -18,7 +18,7 @@ somatic
 -maybe some other stats...
 """
 import sys, os
-import mutations, global_settings, bed_tools, mu2a
+import mutations, global_settings, bed_tools
 
 def get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff):
     """Load mutations from data/all_non_ref_hg19 for all paired samples"""
@@ -79,6 +79,27 @@ def screen_mutation_types(mutation_ls):
               allowed[chrpos] = True
     return allowed
 
+def intersection_table(exome2mutations):
+    """Print intersection between aa_chg normal->cancer mutations"""
+    
+    exome = 'exome.aa_chg'
+    print 'Sample\tExome\tInherited count\tSomatic count'
+    for sample1 in exome2mutations:
+        for sample2 in exome2mutations:
+            if sample1 != sample2 and sample1 != 'yuaker' and sample2 != 'yuaker':
+                inherited_pre_s1, somatic_pre_s1 = exome2mutations[sample1][exome]
+                somatic1 = screen_mutation_types(somatic_pre_s1[sample1])
+
+                inherited_pre_s2, somatic_pre_s2 = exome2mutations[sample2][exome]
+                somatic2 = screen_mutation_types(somatic_pre_s2[sample2])
+
+                both = len(set(somatic2) & set(somatic1))
+                print('%s\t%s\t%d\t%d\t%d' %
+                      (sample1, sample2, 
+                       len(somatic1.keys()),
+                       len(somatic2.keys()),
+                       both))
+
 def somatic_table_melanoma_paper_paired_samples(exome2mutations):
     """
     Discard cases where the tumor allele is present in normal,
@@ -91,7 +112,7 @@ def somatic_table_melanoma_paper_paired_samples(exome2mutations):
             inherited_pre, somatic_pre = exome2mutations[sample][exome]
             somatic = screen_mutation_types(somatic_pre[sample])
             inherited = screen_mutation_types(inherited_pre[sample])
-            print('%s\t%s\t%s\t%s' %
+            print('%s\t%s\t%d\t%d' %
                   (sample, exome, len(inherited.keys()),
                    len(somatic.keys()))) 
 
@@ -122,7 +143,7 @@ def somatic_table(exome2mutations):
     print 'Exome\tInherited count\tSomatic count'
     for exome in exome2mutations:
         inherited, somatic = exome2mutations[exome]
-        print('%s\t%s\t%s' %
+        print('%s\t%d\t%d' %
               (exome, len(inherited['yusan'].keys()),
                len(somatic['yusan'].keys())))
 
@@ -135,8 +156,12 @@ def main():
     exome2mutations = get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff)
     somatic_table_melanoma_paper_paired_samples(exome2mutations)
 
-    exome2mutations = get_mutations_yusan(quality_cutoff, coverage_cutoff)
-    somatic_table_melanoma_paper(exome2mutations)
+    intersection_table(exome2mutations)
+
+#    exome2mutations = get_mutations_yusan(quality_cutoff, coverage_cutoff)
+#    somatic_table_melanoma_paper(exome2mutations)
+
+    
 
     #mu2a_somatic = mu2a.MU2A('working/mu2a/somatic.mu2a.output')
     #print len(mu2a_somatic.get_kinse_mutations)
