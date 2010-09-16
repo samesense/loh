@@ -33,16 +33,18 @@ def write(afile, muts):
     with open(afile, 'w') as f:
         for chrpos in muts:
             chr, pos = chrpos.split(':')
-            f.write(chr + '\t' + pos + '\n')
+            normal_call, cancer_call = muts[chrpos]
+            f.write(chr + '\t' + pos + '\t' 
+                    + normal_call + '\t' + cancer_call + '\n')
 
 def screen_mutation_types(mutation_ls):
     """Allow mutations seen in the somatic mutation melanoma paper"""
 
     allowed = {}
     for chrpos in mutation_ls:
-         mutation_type = mutation_ls[chrpos][0]
+         mutation_type, normal_call, cancer_call = mutation_ls[chrpos]
          if mutation_type not in ('AB:AA', 'AB:BB'): #AA:BB AA:AB?
-              allowed[chrpos] = True
+              allowed[chrpos] = (normal_call, cancer_call)
     return allowed
 
 def main():
@@ -61,11 +63,11 @@ def main():
             sample_inherited = screen_mutation_types(i[sample])
             sample_somatic = screen_mutation_types(s[sample])
             for chrpos in sample_inherited:
-                inherited[chrpos] = True
+                inherited[chrpos] = sample_inherited[chrpos]
             for chrpos in sample_somatic:
-                somatic[chrpos] = True
-    write('working/inherited.mu2a', inherited)
-    write('working/somatic.mu2a', somatic)
+                somatic[chrpos] = sample_somatic[chrpos]
+    write('working/mu2a/inherited.mu2a_input', inherited)
+    write('working/mu2a/somatic.mu2a_input', somatic)
     print len(set(somatic.keys()) & set(inherited.keys()))
 
 if __name__ == '__main__':
