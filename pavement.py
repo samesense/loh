@@ -43,7 +43,7 @@ def mixture():
                 cnv_file = 'working/cnv_seq/CNV/' + subdir + '/' + exome_type + '.' + cancer + '.cnvs'
                 if os.path.exists(cnv_file):
                     sh('python find_mixture.py '
-                       + 'working/' + exome_type.replace('.', '_') + '/hg19_murim.' + cancer + ' '
+                       + 'working/' + subdir + '/' + exome_type.replace('.', '_') + '/hg19_murim.' + cancer + ' '
                        + cnv_file 
                        + ' > working/mixture/' + subdir + '/' + exome_type + '.' + cancer + '.mix')
         sh('python plot_mixture.py '
@@ -54,7 +54,7 @@ def cnv_seq():
     """Run cnv_seq"""
 
     sh('python cnv_plot.py')
-    # all_non_ref
+
     for subdir in ('exome', 'all_non_ref_hg19'):
         sh('mkdir -p ' + os.path.join('plots', 'cnv-seq', subdir))
         for exome in global_settings.exome_types:
@@ -68,7 +68,7 @@ def cnv_seq():
                     sh('python cnv_seq_plot.py '
                        + exome + '.' + cancer + '.coverage.hits-vs-' + exome + '.'
                        + normal + '.coverage.hits.log2-0.6.pvalue-0.001.minw-4.cnv '
-                       + 'working/' + exome.replace('.','_') + '/hg19_murim.' + cancer + ' '
+                       + 'working/murim_plot/' + subdir + '/' + exome.replace('.','_') + '/hg19_murim.' + cancer + ' '
                        + subdir + ' '
                        + 'plots/cnv-seq/' + subdir + '/' + exome + '.' + cancer + '.png')
                     sh('montage -geometry 500 -quality 100 -tile 1x2 '
@@ -86,9 +86,10 @@ def loh_homo():
 
 @task
 def loh_full():
-    """Make Murim LOH plot for het>any"""
+    """Make Murim LOH plot for het>any. Call this for mixture work."""
 
     sh('python murim_plot.py all working/loh_mutations > working/loh_problems')
+    # this makes hg19_murim stuff for mixture
     sh('python summary_plot.py hg19_murim plots/murim_all/')
 
 @task

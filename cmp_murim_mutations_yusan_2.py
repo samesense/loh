@@ -43,6 +43,8 @@ def get_my_mutations(quality_cutoff, coverage_cutoff):
         inherited, somatic, murim = mutations.get_mutations(data_file, normal_qualities,
                                                             cancer_qualities, quality_cutoff,
                                                             False, coverage_cutoff)
+        # only use the bed_tools NimbleGen
+        # restriction for hg18 data
         for s in somatic['yusan']: 
             chr, pos = s.split(':')
             if bed_tools.find_location_in_bed(chr, int(pos), 
@@ -55,7 +57,7 @@ def get_my_mutations(quality_cutoff, coverage_cutoff):
                                               bed_chr2posLs,
                                               bed_chr2st2end):
                 all_inherited[i] = True
-    return (all_somatic, all_inherited)
+    return (set(all_somatic.keys()) & set(get_murim_covered(quality_cutoff)), set(all_inherited.keys()) & set(get_murim_covered(quality_cutoff)))
 
 def remove_deletions(murim_mutations):
     """Trying to figure out why we are different from Murim.
@@ -124,6 +126,10 @@ def main():
     with open('working/yong_missing_from_murim', 'w') as f:
         for chrpos in murim_mutations:
             if chrpos not in our_somatic_mutations:
+                f.write(chrpos + '\n')
+    with open('working/yong_extra', 'w') as f:
+        for chrpos in our_somatic_mutations:
+            if chrpos not in murim_mutations:
                 f.write(chrpos + '\n')
 
 if __name__ == '__main__':
