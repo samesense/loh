@@ -43,7 +43,32 @@ def get_mutations(quality_cutoff, coverage_cutoff):
                                                             cancer_qualities, quality_cutoff,
                                                             False, coverage_cutoff)
         exome2mutations[exome] = (inherited, somatic)
-    return exome2mutations        
+    return exome2mutations    
+
+def screen_mutation_types(mutation_ls):
+    """Allow mutations seen in the somatic mutation melanoma paper"""
+
+    allowed = {}
+    for chrpos in mutation_ls['yusan']:
+         mutation_type = mutation_ls['yusan'][chrpos][0]
+         if mutation_type not in ('AB:AA', 'AB:BB'): #AA:BB AA:AB?
+              allowed[chrpos] = True
+    return allowed
+
+def somatic_table_melanom_paper(exome2mutations):
+    """
+    Discard cases where the tumor allele is present in normal,
+    or when the tumor allele is the same as the reference
+    """
+    
+    print 'Exome\tInherited count\tSomatic count'
+    for exome in exome2mutations:
+        inherited_pre, somatic_pre = exome2mutations[exome]
+        somatic = screen_mutation_types(somatic_pre)
+        inherited = screen_mutation_types(inherited_pre)
+        print('%s\t%s\t%s' %
+              (exome, len(inherited.keys()),
+               len(somatic.keys())))    
 
 def somatic_table(exome2mutations):
     """
@@ -64,11 +89,13 @@ def somatic_table(exome2mutations):
 def main():
     """Call methods for somatic & inherited tables."""
 
-    quality_cutoff = float(100)
+    quality_cutoff = float(80)
     coverage_cutoff = int(8)
     exome2mutations = get_mutations(quality_cutoff, coverage_cutoff)
 
-    somatic_table(exome2mutations)
+    #somatic_table(exome2mutations)
+    #print '++++++++++++++++++++'
+    somatic_table_melanom_paper(exome2mutations)
 
 if __name__ == '__main__':
     main()
