@@ -27,24 +27,30 @@ def get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff):
 
     return sample2mutations 
 
-def write(afile, muts):
+def write(afile, muts, file_type):
     """Write mutations to working/file"""
 
     with open(afile, 'w') as f:
         for chrpos in muts:
             chr, pos = chrpos.split(':')
-            normal_call, cancer_call = muts[chrpos]
-            f.write(chr + '\t' + pos + '\t' 
-                    + normal_call + '\t' + cancer_call + '\n')
+            normal_call, cancer_call, ref_call = muts[chrpos]
+            if file_type == 'inherited':
+                f.write(chr + '\t' + pos + '\t' 
+                        + ref_call + '\t' + cancer_call + '\n')
+            elif file_type == 'somatic':
+                f.write(chr + '\t' + pos + '\t' 
+                        + normal_call + '\t' + cancer_call + '\n')
+            else:
+                raise ValueError
 
 def screen_mutation_types(mutation_ls):
     """Allow mutations seen in the somatic mutation melanoma paper"""
 
     allowed = {}
     for chrpos in mutation_ls:
-         mutation_type, normal_call, cancer_call = mutation_ls[chrpos]
+         mutation_type, normal_call, cancer_call, ref_allele = mutation_ls[chrpos]
          if mutation_type not in ('AB:AA', 'AB:BB'): #AA:BB AA:AB?
-              allowed[chrpos] = (normal_call, cancer_call)
+              allowed[chrpos] = (normal_call, cancer_call, ref_allele)
     return allowed
 
 def main():
@@ -66,8 +72,8 @@ def main():
                 inherited[chrpos] = sample_inherited[chrpos]
             for chrpos in sample_somatic:
                 somatic[chrpos] = sample_somatic[chrpos]
-    write('working/mu2a/inherited.mu2a_input', inherited)
-    write('working/mu2a/somatic.mu2a_input', somatic)
+    write('working/mu2a/inherited.mu2a_input', inherited, 'inherited')
+    write('working/mu2a/somatic.mu2a_input', somatic, 'somatic')
     print len(set(somatic.keys()) & set(inherited.keys()))
 
 if __name__ == '__main__':

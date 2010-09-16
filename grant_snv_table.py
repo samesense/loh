@@ -18,8 +18,7 @@ somatic
 -maybe some other stats...
 """
 import sys, os
-sys.path.append('../')
-import mutations, global_settings, bed_tools
+import mutations, global_settings, bed_tools, mu2a
 
 def get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff):
     """Load mutations from data/all_non_ref_hg19 for all paired samples"""
@@ -51,7 +50,7 @@ def get_mutations_yusan(quality_cutoff, coverage_cutoff):
 
 
     exome2mutations = {}
-    bed_file = '../data/nimblegen/2.1M_Human_Exome_Annotation/2.1M_Human_Exome.bed'
+    bed_file = 'data/nimblegen/2.1M_Human_Exome_Annotation/2.1M_Human_Exome.bed'
     bed_chr2st2end, bed_chr2posLs = bed_tools.load_bed(bed_file, 
                                                        'NimbleGen Tiled Regions')
     # NimbleGen Tiled Regions
@@ -138,6 +137,9 @@ def main():
 
     exome2mutations = get_mutations_yusan(quality_cutoff, coverage_cutoff)
     somatic_table_melanoma_paper(exome2mutations)
+
+    #mu2a_somatic = mu2a.MU2A('working/mu2a/somatic.mu2a.output')
+    #print len(mu2a_somatic.get_kinse_mutations)
     
 #somatic_table(exome2mutations)
     #print '++++++++++++++++++++'

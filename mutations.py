@@ -54,6 +54,7 @@ def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff, cmp
         for line in f:
             sp = line.split('\t')
             samples = sp[9].split('-')
+            ref_allele = sp[11]
             idx = 18
             chr = sp[2]
             pos = sp[3]
@@ -83,11 +84,12 @@ def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff, cmp
                     elif mutation_type in ('BB:BB', 'AB:AB'):
                         inherited[sample_name_normal][chrpos] = (mutation_type,
                                                                  normal_call,
-                                                                 cancer_call)
+                                                                 cancer_call,
+                                                                 ref_allele)
                     elif normal_call != cancer_call:
                         somatic[sample_name_normal][chrpos] = (mutation_type,
                                                                normal_call,
-                                                               cancer_call)
+                                                               cancer_call, ref_allele)
                         # murim can only see mutations 
                         # that differ from the reference
                         # only the first case matters
@@ -95,7 +97,7 @@ def get_mutations(afile, normal_qualities, cancer_qualities, quality_cutoff, cmp
                         if mutation_type in ('AB:BB',):#not in ('AB:AA', 'AA:AB', 'AA:BB', 'BB:AA'): # these should give the same counts
                             murim[sample_name_normal][chrpos] = (mutation_type,
                                                                  normal_call,
-                                                                 cancer_call)
+                                                                 cancer_call, ref_allele)
 
                     # this checks the calls instead of the mutation type
                     # this will result in overlaps
