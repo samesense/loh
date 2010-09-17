@@ -37,12 +37,13 @@ def mk_r(points_input, lines_input, rfile, plot_file, title, col):
     rfile.write("png('" + plot_file + "')\n")
     rfile.write("points <- read.delim('"
                 + points_input + "',header=FALSE,sep='\\t')\n")
-    rfile.write("plot(points,ylim=c(0,1),pch='o',col='" + col + "',xaxt='n',xlab='',ylab='',main='" + title + "')\n")
+    rfile.write("plot(points,ylim=c(0,1),pch='o',col='" 
+                + col + "',xaxt='n',xlab='',ylab='',main='" 
+                + title + "')\n")
     rfile.write("v_line <- read.delim('"
                 + lines_input + "',header=FALSE,sep='\\t')\n") 
     rfile.write("for (idx in 1:dim(v_line)[1]) {abline(v=v_line[idx,],lty=2)}\n")
     rfile.write('dev.off()\n')
-
 
 file_type = sys.argv[1] # hg19 or hg19_murim
 plot_dir = sys.argv[2]
@@ -59,7 +60,8 @@ with open(rinput, 'w') as rout:
             os.system('mkdir -p ' + new_plot_dir)
             for filename in os.listdir(subdir):
                 if file_type in filename:
-                    title = dir + ':' + filename.split('.')[-1] + ':' + file_type
+                    title = ':'.join(dir, filename.split('.')[-1],
+                                     file_type)
                     path = os.path.join(subdir,
                                         filename)
                     rfile, rlines = mk_input(path, title.replace(':', '_'))
@@ -83,5 +85,7 @@ for dir in os.listdir(working_dir):
     if 'exome' in dir:
         new_plot_dir = os.path.join(plot_dir, dir)
         os.system('montage -geometry 500 -quality 100 '
-                  + os.path.join(new_plot_dir, '*' + file_type + '.summary*') + ' '
-                  + os.path.join(new_plot_dir, dir + '.' + file_type + '.ALL.png'))
+                  + os.path.join(new_plot_dir, '*' 
+                                 + file_type + '.summary*') + ' '
+                  + os.path.join(new_plot_dir, dir + '.' 
+                                 + file_type + '.ALL.png'))

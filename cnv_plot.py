@@ -6,11 +6,36 @@
 
    Plot the ratio of coverage (not freq)
    for normal and cancer.
+
+   Obselete.
 """
-import os, random, sys, math, global_settings
+import os, random, sys, math, global_settings, call_class
 from collections import defaultdict
 
 random.seed()
+
+def mk_cnv_seq_input_chrpos(coverage, chr, pos, file):
+    """ Print out each position the # of times it is covered (signal strength)."""
+
+    for i in xrange(coverage):
+        file.write('%s\t%s\n' % (chr.split('chr')[1], pos))
+
+def mk_cnv_seq_input(coverages, output_dir):
+    """Make input for CNV-seq.
+       Print out each position the # of times it is covered (signal strength)."""
+
+    for sample in coverages:
+        for exome_type in coverages[sample]:
+            with open(os.path.join(output_dir,
+                                   '.'.join(exome_type,
+                                            sample, 'N.hits')), 'w') as nhits:
+                with open(os.path.join(output_dir,
+                                       '.'.join(exome_type,
+                                                sample, 'T.hits')), 'w') as thits:
+                    for chrpos in coverages[sample][exome_type]:
+                        chr, pos = chrpos.split(':')
+                        mk_cnv_seq_input_chrpos(coverages[sample][exome_type]['N'], nhits)
+                        mk_cnv_seq_input_chrpos(coverages[sample][exome_type]['T'], thits)
 
 def mk_cnv_seq(coverages, cancer, normal, cancer_file, normal_file):
     """Make input to CNV-seq. Print out each position the # of times it is covered (signal strength)."""
@@ -279,4 +304,15 @@ for afile in global_settings.exome_types:
         mk_cnv_seq(coverages, cancer, normal, 
                    cnv_seq_cancer_file, cnv_seq_normal_file)
 
+# simplified all_non_ref_hg19 methods using call_class
+#samples2data = call_class.get_data_for_paired_samples()
+#coverages = call_class.get_coverages(samples2data)
+#mk_cnv_seq_input(coverages, os.path.join(cnv_seq_dir, full_data_dir))
 
+# for cancer, normal in global_settings.pairs:
+#     cnv_seq_cancer_file = os.path.join(cnv_seq_dir, full_data_dir, 
+#                                        afile + '.' + cancer + '.coverage.hits')
+#     cnv_seq_normal_file = os.path.join(cnv_seq_dir, full_data_dir, 
+#                                        afile + '.' + normal + '.coverage.hits')
+#     mk_cnv_seq_input(coverages, cancer, normal, 
+#                      cnv_seq_cancer_file, cnv_seq_normal_file)

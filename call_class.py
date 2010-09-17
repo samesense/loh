@@ -172,5 +172,35 @@ def get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff):
         sample2exome2mutations[sample_name] = (inherited, somatic)
 
     return sample2exome2mutations
+
+def get_data_for_paired_samples():
+    """Grab all data w/ no quality cutoff"""
+
+    sample2data = {}
+    use_data_dir = '/home/perry/Projects/loh/data/all_non_ref_hg19/'
+
+    for cancer, normal in global_settings.pairs:
+        sample_name = cancer.split('0')[0]
+        data_dir = os.path.join(use_data_dir, cancer)
+        mutation_calls = calls(data_dir, sample_name)
+        sample2data[sample_name] = mutation_calls.data
+
+    return sample2data
+
+def get_coverages(sample2data):
+    """For each sample, return chrpos 2 coverage for each exome type.
+       Return sample 2 exometype 2 chrpos 2 {N:cov, T:cov}"""
+
+    coverage = {}
+    for sample in sample2data:
+        coverage[sample] = {}
+        for exome_type in sample2data[sample]:
+            coverage[sample][exome_type] = {}
+            for chrpos in sample2data[sample][exome_type]:
+                d = {}
+                d['N'] = sample2data[sample][exome_type][chrpos]['N']['coverage']
+                d['T'] = sample2data[sample][exome_type][chrpos]['T']['coverage']
+                coverage[sample][exome_type][chrpos] = d
+    return coverage
         
         
