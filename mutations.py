@@ -13,8 +13,6 @@ def dump_mu2a_input(chrpos2mutant):
             f.write('%s\t%s\t%s\t%s\n' %
                     (chr, pos, normal_call, cancer_call))
 
-def init_zero(): return 0
-
 def dump_mutants(chrpos2mutant, dumpfile):
     """Write mutations to file"""
 

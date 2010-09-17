@@ -1,7 +1,9 @@
 """Functions called multiple times"""
 
+def init_zero(): return 0
+
 def check_input(afile):
-    """See if there is data in here"""
+    """See if there is data in this file"""
 
     line_counts = 0
     with open(afile) as f:
