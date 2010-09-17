@@ -156,7 +156,23 @@ class calls:
         inherited, somatic = self.get_somatic_inherited_mutations(quality_cutoff, coverage_cutoff)
         write_MU2A_input(inherited[exome_type], inherited_output_file, 'inherited')
         write_MU2A_input(somatic[exome_type], somatic_output_file, 'somatic')
-       
+
+    def get_allele_freq_diffs_for_loh(self, quality_cutoff, coverage_cutoff):
+        """Find allele frequency differenes for all normal heterozygous"""
+
+        freq_diffs = {}
+        for exome_type in self.data:
+            freq_diffs[exome_type] = {}
+            for chrpos in self.data[exome_type]:
+                m1, m2 = self.data[exome_type][chrpos]['mutation_type'].split(':')
+                 # only take normal heterozygous
+                if m1[0] != m1[1] and chrpos not in freq_diffs[exome_type]:
+                    
+                    normal_freq_and_base = get_normal_val(self.data[exome_type][chrpos]['ref_allele'], 
+                                                          self.data[exome_type][chrpos]['N']['coverage'], 
+                                                          self.data[exome_type][chrpos]['N']['call_str'])
+                    
+
 def get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff):
     """Load mutations from data/all_non_ref_hg19 for all paired samples"""
 

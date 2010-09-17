@@ -89,8 +89,8 @@ def loh_homo():
 def loh_full():
     """Make Murim LOH plot for het>any. Call this for mixture work."""
 
-    sh('python murim_plot.py all working/loh_mutations > working/loh_problems')
     # this makes hg19_murim stuff for mixture
+    sh('python murim_plot.py all working/loh_mutations > working/loh_problems')
     sh('python summary_plot.py hg19_murim plots/murim_all/')
 
 @task
