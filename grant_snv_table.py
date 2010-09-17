@@ -18,7 +18,7 @@ somatic
 -maybe some other stats...
 """
 import sys, os
-import mutations, global_settings, bed_tools
+import mutations, global_settings, bed_tools, call_class
 
 def get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff):
     """Load mutations from data/all_non_ref_hg19 for all paired samples"""
@@ -30,9 +30,9 @@ def get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff):
         sample_name = cancer.split('0')[0]
         exome2mutations = {}
     
-        cancer_qualities = mutations.get_consensus_qualities(os.path.join(use_data_dir, cancer, 
+        cancer_qualities = call_class.get_consensus_qualities(os.path.join(use_data_dir, cancer, 
                                                                           sample_name + 'T.ann'))
-        normal_qualities = mutations.get_consensus_qualities(os.path.join(use_data_dir, cancer,
+        normal_qualities = call_class.get_consensus_qualities(os.path.join(use_data_dir, cancer,
                                                                           sample_name + 'N.ann'))
 
         for exome in global_settings.exome_types:
