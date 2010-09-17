@@ -1,20 +1,7 @@
 """Use the all_non_ref files to find somatic and inherited mutations. Use consensus quality from *ann files to find quality cutoffs."""
 import global_settings, os, sys
 from collections import defaultdict
-import cmp_murim_mutations_yusan
-
-def get_consensus_qualities(afile):
-    """Grab quality score for all calls. This is parsing the pileup output"""
-
-    qualities = {}
-    with open(afile) as f:
-        for line in f:
-            sp = line.strip().split('\t')
-            chr = sp[2]
-            pos = sp[3]
-            con_quality = float(sp[13])
-            qualities[chr+':'+pos] = con_quality
-    return qualities
+import cmp_murim_mutations_yusan, call_class
 
 def dump_mu2a_input(chrpos2mutant):
     """Write input to mu2a"""
@@ -115,8 +102,8 @@ def main():
     use_data_dir = 'data/all_non_ref_hg18/' # | data/all_non_ref_hg19/
     cmp_murim = False
     # grab consensus qualities from *ann files
-    cancer_qualities = get_consensus_qualities(use_data_dir + 'yusanT.ann')
-    normal_qualities = get_consensus_qualities(use_data_dir + 'yusanN.ann')
+    cancer_qualities = call_class.get_consensus_qualities(use_data_dir + 'yusanT.ann')
+    normal_qualities = call_class.get_consensus_qualities(use_data_dir + 'yusanN.ann')
 
     total_somatic_mutations = defaultdict(dict)
     total_inherited_mutations = defaultdict(dict)

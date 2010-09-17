@@ -1,4 +1,4 @@
-"""MU2A class"""
+"""MU2A class for holding parsd data from MU2A output"""
 
 class MU2A:
     """Simple class to hold MU2A parsed data"""
