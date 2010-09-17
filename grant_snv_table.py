@@ -20,21 +20,21 @@ somatic
 import sys, os
 import mutations, global_settings, bed_tools, call_class
 
-def get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff):
-    """Load mutations from data/all_non_ref_hg19 for all paired samples"""
+# def get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff):
+#     """Load mutations from data/all_non_ref_hg19 for all paired samples"""
 
-    sample2exome2mutations = {}
-    use_data_dir = '/home/perry/Projects/loh/data/all_non_ref_hg19/'
+#     sample2exome2mutations = {}
+#     use_data_dir = '/home/perry/Projects/loh/data/all_non_ref_hg19/'
 
-    for cancer, normal in global_settings.pairs:
-        sample_name = cancer.split('0')[0]
-        data_dir = os.path.join(use_data_dir, cancer)
-        calls = call_class.calls(data_dir, sample_name)
-        inherited, somatic = calls.get_inherited_somatic_mutations(quality_cutoff,
-                                                                  coverage_cutoff)
-        sample2exome2mutations[sample_name] = (inherited, somatic)
+#     for cancer, normal in global_settings.pairs:
+#         sample_name = cancer.split('0')[0]
+#         data_dir = os.path.join(use_data_dir, cancer)
+#         calls = call_class.calls(data_dir, sample_name)
+#         inherited, somatic = calls.get_inherited_somatic_mutations(quality_cutoff,
+#                                                                   coverage_cutoff)
+#         sample2exome2mutations[sample_name] = (inherited, somatic)
 
-    return sample2exome2mutations 
+#     return sample2exome2mutations 
 
 def get_mutations_yusan(quality_cutoff, coverage_cutoff):
     """Load mutations from data/all_non_ref_hg18"""
@@ -142,8 +142,8 @@ def main():
     quality_cutoff = float(0)
     coverage_cutoff = int(8)
 
-    sample2exome2mutations = get_mutations_for_paired_samples(quality_cutoff,
-                                                              coverage_cutoff)
+    sample2exome2mutations = call_class.get_mutations_for_paired_samples(quality_cutoff,
+                                                                         coverage_cutoff)
     somatic_table_melanoma_paper_paired_samples(sample2exome2mutations)
 
 #    intersection_table(exome2mutations)

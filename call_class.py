@@ -76,6 +76,22 @@ def parse_call_file(call_file, consensus_quality):
                             chrpos_data[chrpos][sample_type][field] = val
                         idx += 5
     return chrpos_data
+
+def write_MU2A_input(mutations, output_file, file_type):
+    """Write MU2A input for a file_type (somatic | inherited)"""
+
+    with open(output_file, 'w') as f:
+        for chrpos in mutations:
+            chr, pos = chrpos.split(':')
+            mutation_type, normal_call, cancer_call, ref_call = mutations[chrpos]
+            if file_type == 'inherited':
+                f.write(chr + '\t' + pos + '\t' 
+                        + ref_call + '\t' + cancer_call + '\n')
+            elif file_type == 'somatic':
+                f.write(chr + '\t' + pos + '\t' 
+                        + normal_call + '\t' + cancer_call + '\n')
+            else:
+                raise ValueError 
         
 class calls:
     """Simple class for data parsed from data/all_non_ref_hg19/yuaker folder, or other samples"""
@@ -132,4 +148,29 @@ class calls:
         with open(afile, 'w') as f:
             for chrpos in inherited[exome_type]:
                 f.write(chrpos + '\n')
+
+    def mk_MU2A_input(exome_type, quality_cutoff, coverage_cutoff,
+                      inherited_output_file, somatic_output_file):
+        """Write input for MU2A for inherited and somatic mutations"""
+        
+        inherited, somatic = self.get_somatic_inherited_mutations(quality_cutoff, coverage_cutoff)
+        write_MU2A_input(inherited[exome_type], inherited_output_file, 'inherited')
+        write_MU2A_input(somatic[exome_type], somatic_output_file, 'somatic')
+       
+def get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff):
+    """Load mutations from data/all_non_ref_hg19 for all paired samples"""
+
+    sample2exome2mutations = {}
+    use_data_dir = '/home/perry/Projects/loh/data/all_non_ref_hg19/'
+
+    for cancer, normal in global_settings.pairs:
+        sample_name = cancer.split('0')[0]
+        data_dir = os.path.join(use_data_dir, cancer)
+        mutation_calls = calls(data_dir, sample_name)
+        inherited, somatic = mutation_calls.get_inherited_somatic_mutations(quality_cutoff,
+                                                                            coverage_cutoff)
+        sample2exome2mutations[sample_name] = (inherited, somatic)
+
+    return sample2exome2mutations
+        
         
