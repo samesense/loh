@@ -97,7 +97,7 @@ class calls:
             call_file = os.path.join(data_dir, exome_type)
             self.data[exome_type] = parse_call_file(call_file, consensus_qualities)
 
-    def get_somatic_inherited_mutations(self, quality_cutoff, coverage_cutoff):
+    def get_inherited_somatic_mutations(self, quality_cutoff, coverage_cutoff):
         """Return chrpos and ref, normal, cancer alleles for in inherited and somatic {}"""
 
         # exome types on top level

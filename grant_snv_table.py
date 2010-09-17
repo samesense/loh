@@ -23,27 +23,18 @@ import mutations, global_settings, bed_tools, call_class
 def get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff):
     """Load mutations from data/all_non_ref_hg19 for all paired samples"""
 
-    sample2mutations = {}
+    sample2exome2mutations = {}
     use_data_dir = '/home/perry/Projects/loh/data/all_non_ref_hg19/'
 
     for cancer, normal in global_settings.pairs:
         sample_name = cancer.split('0')[0]
-        exome2mutations = {}
-    
-        cancer_qualities = call_class.get_consensus_qualities(os.path.join(use_data_dir, cancer, 
-                                                                          sample_name + 'T.ann'))
-        normal_qualities = call_class.get_consensus_qualities(os.path.join(use_data_dir, cancer,
-                                                                          sample_name + 'N.ann'))
+        data_dir = os.path.join(use_data_dir, cancer)
+        calls = call_class.calls(data_dir, sample_name)
+        inherited, somatic = calls.get_inherited_somatic_mutations(quality_cutoff,
+                                                                  coverage_cutoff)
+        sample2exome2mutations[sample_name] = (inherited, somatic)
 
-        for exome in global_settings.exome_types:
-            data_file = os.path.join(use_data_dir, cancer, exome)
-            inherited, somatic, murim = mutations.get_mutations(data_file, normal_qualities,
-                                                                cancer_qualities, quality_cutoff,
-                                                                False, coverage_cutoff)
-            exome2mutations[exome] = (inherited, somatic)
-        sample2mutations[sample_name] = exome2mutations
-
-    return sample2mutations 
+    return sample2exome2mutations 
 
 def get_mutations_yusan(quality_cutoff, coverage_cutoff):
     """Load mutations from data/all_non_ref_hg18"""
@@ -59,8 +50,8 @@ def get_mutations_yusan(quality_cutoff, coverage_cutoff):
     use_data_dir = '/home/perry/Projects/loh/data/all_non_ref_hg18/'
     all_somatic = {}
     all_inherited = {}
-    cancer_qualities = mutations.get_consensus_qualities(use_data_dir + 'yusanT.ann')
-    normal_qualities = mutations.get_consensus_qualities(use_data_dir + 'yusanN.ann')
+    cancer_qualities = call_class.get_consensus_qualities(use_data_dir + 'yusanT.ann')
+    normal_qualities = call_class.get_consensus_qualities(use_data_dir + 'yusanN.ann')
     for exome in global_settings.exome_types:
         data_file = use_data_dir + exome
         inherited, somatic, murim = mutations.get_mutations(data_file, normal_qualities,
@@ -100,21 +91,19 @@ def intersection_table(exome2mutations):
                        len(somatic2.keys()),
                        both))
 
-def somatic_table_melanoma_paper_paired_samples(exome2mutations):
+def somatic_table_melanoma_paper_paired_samples(sample2mutations):
     """
     Discard cases where the tumor allele is present in normal,
     or when the tumor allele is the same as the reference
     """
     
     print 'Sample\tExome\tInherited count\tSomatic count'
-    for sample in exome2mutations:
-        for exome in exome2mutations[sample]:
-            inherited_pre, somatic_pre = exome2mutations[sample][exome]
-            somatic = screen_mutation_types(somatic_pre[sample])
-            inherited = screen_mutation_types(inherited_pre[sample])
+    for sample in sample2mutations:
+        inherited, somatic = sample2mutations[sample]
+        for exome in set(inherited.keys()) | set(somatic.keys()):
             print('%s\t%s\t%d\t%d' %
-                  (sample, exome, len(inherited.keys()),
-                   len(somatic.keys()))) 
+                  (sample, exome, len(inherited[exome].keys()),
+                   len(somatic[exome].keys()))) 
 
 def somatic_table_melanoma_paper(exome2mutations):
     """
@@ -153,14 +142,11 @@ def main():
     quality_cutoff = float(0)
     coverage_cutoff = int(8)
 
-    exome2mutations = get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff)
-    with open('working/inherited.start', 'w') as f:
-        inherited, s = exome2mutations['yuaker']['exome.aa_chg']
-        for chrpos in inherited['yuaker']:
-            f.write(chrpos + '\n')
-    somatic_table_melanoma_paper_paired_samples(exome2mutations)
+    sample2exome2mutations = get_mutations_for_paired_samples(quality_cutoff,
+                                                              coverage_cutoff)
+    somatic_table_melanoma_paper_paired_samples(sample2exome2mutations)
 
-    intersection_table(exome2mutations)
+#    intersection_table(exome2mutations)
 
 #    exome2mutations = get_mutations_yusan(quality_cutoff, coverage_cutoff)
 #    somatic_table_melanoma_paper(exome2mutations)
