@@ -120,3 +120,16 @@ class calls:
                                                        self.data[exome_type][chrpos]['ref_allele'])
         # data is organized by exome_type
         return (inherited, somatic)
+
+    def write_mutations(self, quality_cutoff, coverage_cutoff, exome_type, somatic_or_inherited, afile):
+        """Write mutations for file"""
+
+        inherited, somatic = self.get_somatic_inherited_mutations(quality_cutoff, coverage_cutoff)
+        if somatic_or_inherited == 'somatic':
+            use_muts = somatic
+        else:
+            use_muts = inherited
+        with open(afile, 'w') as f:
+            for chrpos in inherited[exome_type]:
+                f.write(chrpos + '\n')
+        

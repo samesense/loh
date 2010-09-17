@@ -154,6 +154,10 @@ def main():
     coverage_cutoff = int(8)
 
     exome2mutations = get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff)
+    with open('working/inherited.start', 'w') as f:
+        inherited, s = exome2mutations['yuaker']['exome.aa_chg']
+        for chrpos in inherited['yuaker']:
+            f.write(chrpos + '\n')
     somatic_table_melanoma_paper_paired_samples(exome2mutations)
 
     intersection_table(exome2mutations)
