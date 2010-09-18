@@ -1,5 +1,5 @@
 """This holds the parsed data for a sample from
-   data/all_non_ref_hg19"""
+data/all_non_ref_hg19"""
 import global_settings, os
 from collections import defaultdict
 
@@ -81,17 +81,19 @@ def write_MU2A_input(mutations, output_file, file_type):
     """Write MU2A input for a file_type (somatic | inherited)"""
 
     with open(output_file, 'w') as f:
-        for chrpos in mutations:
-            chr, pos = chrpos.split(':')
-            mutation_type, normal_call, cancer_call, ref_call = mutations[chrpos]
-            if file_type == 'inherited':
-                f.write(chr + '\t' + pos + '\t' 
-                        + ref_call + '\t' + cancer_call + '\n')
-            elif file_type == 'somatic':
-                f.write(chr + '\t' + pos + '\t' 
-                        + normal_call + '\t' + cancer_call + '\n')
-            else:
-                raise ValueError 
+        for sample in mutations:
+            for chrpos in mutations[sample]:
+                chr, pos = chrpos.split(':')
+                (mutation_type, normal_call, 
+                 cancer_call, ref_call) = mutations[sample][chrpos]
+                if file_type == 'inherited':
+                    f.write(sample + '\t' + chr + '\t' + pos + '\t' 
+                            + ref_call + '\t' + cancer_call + '\n')
+                elif file_type == 'somatic':
+                    f.write(sample + '\t' + chr + '\t' + pos + '\t' 
+                            + normal_call + '\t' + cancer_call + '\n')
+                else:
+                    raise ValueError 
         
 class calls:
     """Simple class for data parsed from data/all_non_ref_hg19/yuaker folder, or other samples"""
@@ -151,7 +153,7 @@ class calls:
 
     def mk_MU2A_input(exome_type, quality_cutoff, coverage_cutoff,
                       inherited_output_file, somatic_output_file):
-        """Write input for MU2A for inherited and somatic mutations"""
+        """Write input for MU2A for inherited and somatic mutations. This is broken b/c of the function above"""
         
         inherited, somatic = self.get_somatic_inherited_mutations(quality_cutoff, coverage_cutoff)
         write_MU2A_input(inherited[exome_type], inherited_output_file, 'inherited')
