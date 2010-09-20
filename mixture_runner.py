@@ -66,7 +66,7 @@ def plot_mixture(snp_cut):
     subdir = 'all_non_ref_hg19'
     os.system('mkdir -p working/mixture/')
     os.system('mkdir -p working/mixture/all_non_ref_hg19/')
-    for exome_type in global_settings.exome_types:
+    for exome_type in set(global_settings.exome_types) | set(('exome_all',)):
         for cancer, normal in global_settings.pairs:
             cnv_file = 'working/cnv_seq/CNV/' + subdir + '/' + exome_type + '.' + cancer.split('0')[0].strip('T') + '.cnvs'
             loh_file = 'working/loh/' + subdir + '/' + exome_type + '.' + cancer.split('0')[0].strip('T')
@@ -76,7 +76,7 @@ def plot_mixture(snp_cut):
     working_dir = os.path.join('working/mixture/', subdir + '/')
     with open(rinput, 'w') as f:
         f.write('Sample\tExome\tChr\tMixture\n')
-        for exome_type in global_settings.exome_types:
+        for exome_type in set(global_settings.exome_types) | set(('exome_all',)):
             for cancer, normal in global_settings.pairs:
                 mix_file_name = working_dir + exome_type + '.' + cancer + '.mix'
                 if os.path.exists(mix_file_name):
@@ -84,8 +84,12 @@ def plot_mixture(snp_cut):
                         for line in mixfile:
                             chr, snp_count, avg_diff = line.strip().split('\t')
                             if int(snp_count) > snp_cut:
+                                if '.' in exome_type:
+                                    use_exome = exome_type.split('.')[1]
+                                else:
+                                    use_exome = exome_type
                                 f.write('%s\t%s\t%s\t%f\n' %
-                                        (cancer, exome_type.split('.')[1], chr, 
+                                        (cancer, use_exome, chr, 
                                          float(0.5)-float(avg_diff)))
 
     # make R calls
@@ -110,8 +114,10 @@ def mk_cnv_seq_input_chrpos(coverage, chr, pos, file):
 def mk_cnv_seq_input(coverages, output_dir):
     """Make input for CNV-seq.
        Print out each position the # of times it is covered (signal strength)."""
-
+    
     for sample in coverages:
+        # look at all exome types combined
+        total_coverages = {'N':{},'T':{}}
         for exome_type in coverages[sample]:
             with open(os.path.join(output_dir,
                                    '.'.join([exome_type,
@@ -121,11 +127,24 @@ def mk_cnv_seq_input(coverages, output_dir):
                                                 sample + 'T.hits'])), 'w') as thits:
                     for chrpos in coverages[sample][exome_type]:
                         chr, pos = chrpos.split(':')
+                        total_coverages['N'][chrpos] = coverages[sample][exome_type][chrpos]['N']
+                        total_coverages['T'][chrpos] = coverages[sample][exome_type][chrpos]['T']
                         for coverage, file in ((coverages[sample][exome_type][chrpos]['N'],
                                                 nhits),
                                                (coverages[sample][exome_type][chrpos]['T'],
                                                 thits)):
                             mk_cnv_seq_input_chrpos(coverage, chr, pos, file)
+            with open(os.path.join(output_dir, '.'.join(['exome_all',
+                                                         sample + 'N.hits'])), 'w') as nhits:
+                with open(os.path.join(output_dir,
+                                       '.'.join(['exome_all',
+                                                 sample + 'T.hits'])), 'w') as thits:
+                    for sample_type, file in (('N', nhits),
+                                              ('T', thits)):
+                        for chrpos in total_coverages[sample_type]:
+                            chr, pos = chrpos.split(':')
+                            mk_cnv_seq_input_chrpos(total_coverages[sample_type][chrpos], 
+                                                    chr, pos, file)
 
 def mk_cnv_seq_input_runner():
     """Construct CNV-seq input from all_non_ref_hg19 5 paired samples"""
@@ -177,16 +196,16 @@ def call_cnv_seq(sample_pairs):
     subdir = 'all_non_ref_hg19'
     os.system('mkdir -p ' + os.path.join('plots', 'cnv-seq'))
     os.system('mkdir -p ' + os.path.join('plots', 'cnv-seq', subdir))
-    for exome in global_settings.exome_types:
+    for exome in set(global_settings.exome_types) | set(('exome_all',)):
         for cancer, normal in sample_pairs:
             cancer_hits = 'working/cnv_seq/' + subdir + '/' + exome + '.'  + cancer + '.hits'
             normal_hits = 'working/cnv_seq/' + subdir + '/' + exome + '.' + normal + '.hits'
-            os.system('perl cnv-seq.pl --test ' + cancer_hits + ' --ref '
-                      + normal_hits 
-                      + ' --genome human --log2 0.6 --p 0.001 --bigger-window 1.5 --annotate -minimum-windows 4')
+            # os.system('perl cnv-seq.pl --test ' + cancer_hits + ' --ref '
+            #           + normal_hits 
+            #           + ' --genome human --log2 0.6 --p 0.001 --bigger-window 1.5 --annotate -minimum-windows 4')
             cnv_file = exome + '.' + cancer + '.hits-vs-' + exome + '.' + normal + '.hits.log2-0.6.pvalue-0.001.minw-4.cnv'
             plot_file = 'plots/cnv-seq/' + subdir + '/' + exome + '.' + cancer.rstrip('T') + '.png'
-            CNV_plot(cnv_file, subdir, plot_file)  
+            #CNV_plot(cnv_file, subdir, plot_file)  
             return_plots[cancer[0:-1] + '.' + exome] = plot_file
     return return_plots
 
@@ -209,7 +228,7 @@ def plot_loh(freq_diffs, plot_file, input_file):
         f.write('dev.off()\n')
         f.write('q()\n')
 
-    os.system('R CMD BATCH --vanilla ' + rtmp + ' tmpLog')
+    #os.system('R CMD BATCH --vanilla ' + rtmp + ' tmpLog')
     os.system('rm ' + rtmp + ' tmpLog')
 
 def loh():
@@ -227,11 +246,19 @@ def loh():
         freq_diffs = call_class.get_allele_freq_diffs_for_loh(samples2data[sample], 
                                                               quality_cutoff, 
                                                               coverage_cutoff)
+        all_exome_freq_diffs = {}
         for exome in freq_diffs:
             plot_file = 'plots/loh/all_non_ref_hg19/' + exome + '.' + sample + '.png'
             input_file = 'working/loh/all_non_ref_hg19/' + exome + '.' + sample
             plot_loh(freq_diffs[exome], plot_file, input_file)
             plots[sample + '.' + exome] = plot_file
+            for chrpos in freq_diffs[exome]:
+                all_exome_freq_diffs[chrpos] = freq_diffs[exome][chrpos]
+        plot_file = 'plots/loh/all_non_ref_hg19/exome_all.' + sample + '.png'
+        input_file = 'working/loh/all_non_ref_hg19/exome_all.' + sample
+        plot_loh(all_exome_freq_diffs, 
+                 plot_file, input_file)
+        plots[sample + '.exome_all'] = plot_file
     return plots
 
 def main():
@@ -242,6 +269,7 @@ def main():
     sample_pairs = mk_cnv_seq_input_runner()
     cnv_plots = call_cnv_seq(sample_pairs)
     loh_plots = loh()
+    
     for sample_exome in cnv_plots:
          os.system('montage -geometry 500 -quality 100 -tile 1x2 '
                    + cnv_plots[sample_exome] + ' '
