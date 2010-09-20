@@ -1,6 +1,6 @@
 """This holds the parsed data for a sample from
 data/all_non_ref_hg19"""
-import global_settings, os
+import global_settings, os, utils
 from collections import defaultdict
 
 def get_consensus_qualities(afile):
@@ -159,21 +159,7 @@ class calls:
         write_MU2A_input(inherited[exome_type], inherited_output_file, 'inherited')
         write_MU2A_input(somatic[exome_type], somatic_output_file, 'somatic')
 
-    def get_allele_freq_diffs_for_loh(self, quality_cutoff, coverage_cutoff):
-        """Find allele frequency differenes for all normal heterozygous"""
-
-        freq_diffs = {}
-        for exome_type in self.data:
-            freq_diffs[exome_type] = {}
-            for chrpos in self.data[exome_type]:
-                m1, m2 = self.data[exome_type][chrpos]['mutation_type'].split(':')
-                 # only take normal heterozygous
-                if m1[0] != m1[1] and chrpos not in freq_diffs[exome_type]:
-                    
-                    normal_freq_and_base = get_normal_val(self.data[exome_type][chrpos]['ref_allele'], 
-                                                          self.data[exome_type][chrpos]['N']['coverage'], 
-                                                          self.data[exome_type][chrpos]['N']['call_str'])
-                    
+    
 
 def get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff):
     """Load mutations from data/all_non_ref_hg19 for all paired samples"""
@@ -185,8 +171,9 @@ def get_mutations_for_paired_samples(quality_cutoff, coverage_cutoff):
         sample_name = cancer.split('0')[0]
         data_dir = os.path.join(use_data_dir, cancer)
         mutation_calls = calls(data_dir, sample_name)
-        inherited, somatic = mutation_calls.get_inherited_somatic_mutations(quality_cutoff,
-                                                                            coverage_cutoff)
+        (inherited, 
+         somatic) = mutation_calls.get_inherited_somatic_mutations(quality_cutoff,
+                                                                   coverage_cutoff)
         sample2exome2mutations[sample_name] = (inherited, somatic)
 
     return sample2exome2mutations
@@ -220,5 +207,67 @@ def get_coverages(sample2data):
                 d['T'] = sample2data[sample][exome_type][chrpos]['T']['coverage']
                 coverage[sample][exome_type][chrpos] = d
     return coverage
+
+def get_normal_val(ref_allele, str_length, str):
+    """Count minor allele frequency."""
+
+    ref_count = 0
+    base_counts = defaultdict(utils.init_zero)
+    for s in str:
+        if s == '.' or s == ',':
+            ref_count += 1
+        elif s.upper() in global_settings.homo_bases:
+            base_counts[s.upper()] += 1
+    base_count_ls = []
+    for base in base_counts:
+        base_count_ls.append((base_counts[base], base))
+    base_count_ls.sort()
+    if ref_allele == base_count_ls[-1][1]:
+        use_base = base_count_ls[-2][1]
+    else:
+        use_base = base_count_ls[-1][1]
+
+    return (float(base_counts[use_base])/float(str_length), use_base)
+
+def get_freq_diff(ref_allele, call, str_length, call_str, 
+                  normal_freq_and_base):
+    """Take diff btwn normal_base_freq and cancer"""
+
+    ref_count = 0
+    base_counts = defaultdict(utils.init_zero)
+    for s in call_str:
+        if s == '.' or s == ',':
+            ref_count += 1
+        elif s.upper() in global_settings.homo_bases:
+            base_counts[s.upper()] += 1
+    normal_freq, normal_base = normal_freq_and_base
+
+    tumor_freq = float(0)
+    if normal_base in base_counts:
+        tumor_freq = float(base_counts[normal_base])/float(str_length)
+    elif normal_base == call:
+        tumor_freq = float(ref_count)/float(str_length)
+    return abs(normal_freq - tumor_freq)
+
+def get_allele_freq_diffs_for_loh(data, quality_cutoff, coverage_cutoff):
+    """Find allele frequency differenes for all normal heterozygous"""
+
+    freq_diffs = {}
+    for exome_type in data:
+        freq_diffs[exome_type] = {}
+        for chrpos in data[exome_type]:
+            m1, m2 = data[exome_type][chrpos]['mutation_type'].split(':')
+             # only take normal heterozygous
+            if m1[0] != m1[1] and chrpos not in freq_diffs[exome_type]:
+
+                normal_freq_and_base = get_normal_val(data[exome_type][chrpos]['ref_allele'], 
+                                                      data[exome_type][chrpos]['N']['coverage'], 
+                                                      data[exome_type][chrpos]['N']['call_str'])
+                freq_diffs[exome_type][chrpos] = get_freq_diff(data[exome_type][chrpos]['ref_allele'], 
+                                                               data[exome_type][chrpos]['T']['call'], 
+                                                               data[exome_type][chrpos]['T']['coverage'], 
+                                                               data[exome_type][chrpos]['T']['call_str'], 
+                                                               normal_freq_and_base)
+    return freq_diffs
         
         
