@@ -5,6 +5,20 @@ sys.path.append('./')
 import global_settings, utils
 
 @task
+def snp_exomeSeq_check():
+    """Look at the correspondence between SNP and exome-seq calls"""
+
+    data_dir = 'data/dbsnp/'
+
+    # get data from NCBI
+    ncbi_ftp = 'ftp.ncbi.nih.gov::'
+    sh('rsync -av %ssnp/organisms/human_9606/database/organism_data/SubSNP_top_or_bot.bcp.gz %s' % (ncbi_ftp, data_dir))
+    sh('rsync -av --copy-links %sgenomes/H_sapiens/mapview/seq_snp.md.gz %s' % 
+       (ncbi_ftp, data_dir))
+    sh('gunzip -fq %s' % os.path.join(data_dir, 'SubSNP_top_or_bot.bcp.gz'))
+    sh('gunzip -fq %s' % os.path.join(data_dir, 'seq_snp.md.gz'))
+    
+@task
 def mixture():
     """Make CNV/LOH and mixture plots"""
 

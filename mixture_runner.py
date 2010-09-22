@@ -97,6 +97,7 @@ def plot_mixture(snp_cut):
     with open(rtmp, 'w') as f:
         f.write('library(ggplot2)\n')
         f.write("data<-read.delim('" + rinput + "',header=TRUE,sep='\\t')\n")
+        f.write("data$Chr <-factor(data$Chr, levels=data$Chr)\n")
         f.write("png('plots/" + subdir + ".mixture.png')\n")
         f.write('ggplot(data) + aes(x=Chr,y=Mixture) + geom_point() + facet_grid(Sample~Exome)\n')
         f.write('dev.off()\n')
