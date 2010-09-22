@@ -17,6 +17,16 @@ def snp_exomeSeq_check():
        (ncbi_ftp, data_dir))
     sh('gunzip -fq %s' % os.path.join(data_dir, 'SubSNP_top_or_bot.bcp.gz'))
     sh('gunzip -fq %s' % os.path.join(data_dir, 'seq_snp.md.gz'))
+
+    chrs = [str(x) for x in range(1,22)]
+    chrs.extend(['Y', 'X'])
+    for chr in chrs:
+        sh('rsync -av %ssnp/organisms/human_9606/rs_fasta/rs_ch%s.fas.gz %s' 
+           % (ncbi_ftp, chr, data_dir))
+        sh('gunzip -fq %s' % os.path.join(data_dir, 'rs_ch%s.fas.gz' % chr))
+        sh("grep '>' %s > %s" %
+           (os.path.join(data_dir, 'rs_ch%s.fas' % chr),
+            os.path.join(data_dir, 'chr%s' % chr)))
     
 @task
 def mixture():
