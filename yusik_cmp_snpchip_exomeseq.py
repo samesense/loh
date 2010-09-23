@@ -1,20 +1,31 @@
 """For Yusik, I have nucleotides for cancer and normal SNP chips,
    so I can compare the calls"""
-import utils
+import utils, global_settings
 from collections import defaultdict
 
 yusik_snpchip_file = 'data/snp_chip/YUSIK_SNPs_from_Chip.txt'
 yusik_exomeseq_file = 'data/all_non_ref_hg19/yusik/exome.intron'
 
-def check_nuc(snpchip, exome):
+def check_nuc(snpchip, exome, snp):
     """Do snpchip and exome match?"""
 
     snp_base = utils.bases2het(snpchip)
     if snp_base == exome:
         return True
     else:
-        print snp_base, exome
-        return False
+        if (snp_base == 'M' and exome == 'K') or (snp_base == 'K' and exome == 'M'):
+            return True
+        elif (snp_base == 'Y' and exome == 'R') or (snp_base == 'R' and exome == 'Y'):
+            return True
+        elif (snp_base in ('A', 'C', 'T', 'G')) and (exome in ('A', 'C', 'T', 'G')):
+            if global_settings.comp[snp_base] == exome:
+                print 'flip', snp_base, exome, snp
+                return True
+            else:
+                return False
+        else:
+            print snp_base, exome
+            return False
 
 def cmp_snpchip(cancer_exome_snps, normal_exome_snps, flip):
     """Count right/wrong calls. Flip snpchip bases as needed.
@@ -22,6 +33,7 @@ def cmp_snpchip(cancer_exome_snps, normal_exome_snps, flip):
 
     cancer_eval = [0,0]
     normal_eval = [0,0]
+    missing = {}
     with open(yusik_snpchip_file) as f:
         for line in f:
             sp = line.strip().split('\t')
@@ -33,7 +45,7 @@ def cmp_snpchip(cancer_exome_snps, normal_exome_snps, flip):
                     if cancer_call != '--':
                         if flip[snp] == '1':
                             cancer_call = utils.flip_bases(cancer_call)
-                        if check_nuc(cancer_call, cancer_exome_snps[snp]):
+                        if check_nuc(cancer_call, cancer_exome_snps[snp], snp):
                             cancer_eval[0] += 1
                         else:
                             cancer_eval[1] += 1
@@ -41,12 +53,16 @@ def cmp_snpchip(cancer_exome_snps, normal_exome_snps, flip):
                     if normal_call != '--':
                         if flip[snp] == '1':
                             normal_call = utils.flip_bases(normal_call)
-                        if check_nuc(normal_call, normal_exome_snps[snp]):
+                        if check_nuc(normal_call, normal_exome_snps[snp], snp):
                             normal_eval[0] += 1
                         else:
                             normal_eval[1] += 1
+            elif 'NC' not in line:
+                missing[snp] = True
     print 'cancer/normal, hit/miss'
-    print cancer_eval, normal_eval
+    print cancer_eval, float(cancer_eval[0]/float(sum(cancer_eval))), normal_eval, float(normal_eval[0])/float(sum(normal_eval))
+    print 'missing', len(missing)
+    #print missing
 
 def load_exome_snps(quality_cut, coverage_cut):
     """Get cancer/normal calls from Yong's file"""
@@ -67,7 +83,7 @@ def check_dbsnp_illumina():
 
     rs2ss = {}
     problems = {}
-    with open('data/dbsnp/snpBatch_ILLUMINA_1049033') as f:
+    with open('data/dbsnp/ILLUMINA_Human_1M') as f:
         for line in f:
             if line[0:2] == 'ss':
                 sp = line.strip().split('\t')
@@ -90,14 +106,13 @@ def main():
     """Entry point"""
 
     coverage_cut = 8
-    quality_cut = float(100)
+    quality_cut = float(50)
     # 1 means flip
     rs2ss_flip = check_dbsnp_illumina()
     snps = load_exome_snps(quality_cut, coverage_cut)
     cmp_snpchip(snps['yusik'],
                 snps['yusikPLX'],
-                rs2ss_flip)
-    
+                rs2ss_flip)    
     
 if __name__ == '__main__':
     main()
