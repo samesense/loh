@@ -26,7 +26,7 @@ def get_orientation_SNPs(snp_tb):
                  feature_name, feature_id, 
                  feature_type, group_label, 
                  weight) = line.strip().split('\t')
-                if feature_type == 'SNP' and group_label == 'HuRef' and feature_name in snp_tb:
+                if feature_type == 'SNP' and group_label == 'Primary_Assembly' and feature_name in snp_tb:
                     outf.write('%s\t%s\t%s\t%s\t%s\t%s\n' %
                                (feature_name, chromosome, chr_start,
                                 chr_stop, chr_orient, snp_tb[feature_name]))
@@ -67,69 +67,74 @@ def get_genotype_for_SNPs():
             snps[snp] = (chr, st, stp, orient, tb)
     chrs =  [str(x) for x in range(1,22)]
     chrs.extend(['X', 'Y'])
-    for chr in chrs:
-        with open('data/dbsnp/chr%s' % chr) as f:
-            for line in f:
-                sp = line.split('|')
-                snp = sp[2].split()[0]
-                genotype = sp[8].split('=')[1].strip("\"")
-                if snp in snps:
-                    (chr, st, stp, orient, tb) = snps[snp]
-                    print('%s\t%s\t%s\t%s\t%s\t%s\t%s' %
-                          (snp, chr, st, stp, orient, tb, genotype))
+    with open('working/snps_full', 'w') as outf:
+        for chr in chrs:
+            with open('data/dbsnp/chr%s' % chr) as f:
+                for line in f:
+                    sp = line.split('|')
+                    snp = sp[2].split()[0]
+                    genotype = sp[8].split('=')[1].strip("\"")
+                    if snp in snps:
+                        (chr, st, stp, orient, tb) = snps[snp]
+                        outf.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %
+                                   (snp, chr, st, stp, orient, tb, genotype))
 
-def get_allele_for_genotype(snp_info, GType):
+def get_allele_for_genotype(snp_info, GType, SNP):
     """Given Illumina's call, find the nucleutodes"""
 
-    alleleA = ''
-    alleleB = ''
-    (chr, st, stp, orient, tb, alleles) = snp_info
-    if tb == 'T':
-        if alleles == 'A/G' or alleles == 'G/A':
-            alleleA = 'A'
-            alleleB = 'G'
-        elif alleles == 'A/C' or alleles == 'C/A':
-            alleleA = 'A'
-            alleleB = 'C'
-        elif alleles == 'A/T' or alleles == 'T/A':
-            alleleA = 'A'
-            alleleB = 'T'
-        elif alleles == 'C/G' or alleles == 'G/C':
-            alleleA = 'C'
-            alleleB = 'G'
-        else:
-            sys.stderr.write('err1 ' + str(snp_info) + '\n')
-            #raise ValueError
-    elif tb == 'B':
-        if alleles == 'T/C' or alleles == 'C/T':
-            alleleA = 'T'
-            alleleB = 'C'
-        elif alleles == 'T/G' or alleles == 'G/T':
-            alleleA = 'T'
-            alleleB = 'G'
-        elif alleles == 'A/T' or alleles == 'T/A':
-            alleleA = 'T'
-            alleleB = 'A'
-        elif alleles == 'C/G' or alleles == 'G/C':
-            alleleA = 'G'
-            alleleB = 'C'
-        else:
-            sys.stderr.write('err1 ' + str(snp_info) + '\n')
-            #raise ValueError    
+    if GType == 'NC':
+        sys.stderr.write('err2 ' + GType + '\n')
+        return ''
     else:
-        raise ValueError
-    
-    if alleleB and alleleB:
-        if GType == 'AA':
-            return (alleleA, alleleA)
-        elif GType == 'AB':
-            return (alleleA, alleleB)
-        elif GType == 'BB':
-            return (alleleB, alleleB)
+        alleleA = ''
+        alleleB = ''
+        (chr, st, stp, orient, tb, alleles) = snp_info
+        if tb == 'T':
+            if alleles == 'A/G' or alleles == 'G/A':
+                alleleA = 'A'
+                alleleB = 'G'
+            elif alleles == 'A/C' or alleles == 'C/A':
+                alleleA = 'A'
+                alleleB = 'C'
+            elif alleles == 'A/T' or alleles == 'T/A':
+                alleleA = 'A'
+                alleleB = 'T'
+            elif alleles == 'C/G' or alleles == 'G/C':
+                alleleA = 'C'
+                alleleB = 'G'
+            else:
+                sys.stderr.write('err1 ' + SNP + ' ' + str(snp_info) + '\n')
+                #raise ValueError
+        elif tb == 'B':
+            if alleles == 'T/C' or alleles == 'C/T':
+                alleleA = 'T'
+                alleleB = 'C'
+            elif alleles == 'T/G' or alleles == 'G/T':
+                alleleA = 'T'
+                alleleB = 'G'
+            elif alleles == 'A/T' or alleles == 'T/A':
+                alleleA = 'T'
+                alleleB = 'A'
+            elif alleles == 'C/G' or alleles == 'G/C':
+                alleleA = 'G'
+                alleleB = 'C'
+            else:
+                sys.stderr.write('err1 ' + SNP + ' ' + str(snp_info) + '\n')
+                #raise ValueError    
         else:
-            sys.stderr.write('err2 ' + GType + '\n')
-            return ''
-            #raise ValueError
+            raise ValueError
+
+        if alleleB and alleleB:
+            if GType == 'AA':
+                return (alleleA, alleleA)
+            elif GType == 'AB':
+                return (alleleA, alleleB)
+            elif GType == 'BB':
+                return (alleleB, alleleB)
+            else:
+                sys.stderr.write('err2 ' + GType + '\n')
+                return ''
+                #raise ValueError
     
 def convert_snpchip(snpchip_file):
     """Take Illumina's AB calls and convert to nucleotides"""
@@ -148,12 +153,12 @@ def convert_snpchip(snpchip_file):
              A, C, G, T, GType, Score, Theta, R) = line.strip().split('\t')
             if Name in snp_info:
                 call = get_allele_for_genotype(snp_info[Name],
-                                               GType)
+                                               GType, Name)
                 if call:
                     print('%s\t%s' % (Name, '/'.join(call)))
 def main():
-    #get_TB_strand_for_SNPs()
-    #get_genotype_for_SNPs()
+    get_TB_strand_for_SNPs()
+    get_genotype_for_SNPs()
     convert_snpchip('data/snp_chip/yuiri_normal')
 
 if __name__ == '__main__':

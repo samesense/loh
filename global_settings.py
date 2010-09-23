@@ -1,3 +1,8 @@
+comp = {'A':'T',
+        'T':'A',
+        'G':'C',
+        'C':'G'}
+
 homo_bases = ('A', 'T', 'G', 'C')
 
 het_bases = ('S', 'Y', 'M', 'R', 'K', 'W')
