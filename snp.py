@@ -31,15 +31,75 @@ def get_orientation_SNPs(snp_tb):
                                (feature_name, chromosome, chr_start,
                                 chr_stop, chr_orient, snp_tb[feature_name]))
 
-def get_TB_for_SNPs():
-    """For all rs SNPs get TOP|BOTTOM"""
-    
+def get_TB_for_SNPs(use_ss):
+    """For all ss SNPs, get TOP|BOTTOM"""
+
     snps = {}
-    with open('data/dbsnp/SubSNP_top_or_bot.bcp') as f:
+    with open('data/dbsnp/SubSNP.bcp') as f:
         for line in f:
-            (snp, tb, stuff, datetime) = line.split('\t')
-            snps['rs' + snp] = tb
+            sp = line.strip().split('\t')
+            ss_snp = 'ss' + sp[0]
+            if ss_snp in use_ss:
+                tb = sp[-4]
+                snps[ss_snp] = tb
+                #print tb, sp[-4], sp[-6]
     return snps
+
+def check_dbsnp_illumina():
+    """See if I need to flip the bases for these rs#s.
+       Ensure each ss# maps to only one rs#"""
+
+    rs2ss = {}
+    problems = {}
+    with open('data/dbsnp/ILLUMINA_Human_1M') as f:
+        for line in f:
+            if line[0:2] == 'ss':
+                sp = line.strip().split('\t')
+                ss = sp[0]
+                alleles = sp[2]
+                rs = sp[4]
+                flip_bases = sp[5]
+                assembly = sp[11]
+                if assembly == 'GRCh37':
+                    if rs in rs2ss:
+                        if ss != rs2ss[rs][0]:
+                            problems[rs] = True
+                            #print 'problem', ss, rs, rs2ss[rs]
+                    else:
+                        rs2ss[rs] = (ss, alleles, flip_bases)
+    ss = {}
+    for rs in problems:
+        del rs2ss[rs]
+    for rs in rs2ss:
+        ss[rs2ss[rs][0]] = True
+    return (rs2ss, ss)
+
+def check_TB_problems(rs2ss, ss2tb):
+    """See if there is disagreement between alleles and top|bottom"""
+
+    #problems = {}
+    #total = {}
+    for rs in rs2ss:
+        ss, alleles, flip_bases = rs2ss[rs]
+        if ss in ss2tb:
+            #total[ss] = True
+            if alleles == 'A/G' or alleles == 'G/A' or alleles == 'A/C' or alleles == 'C/A':
+                if ss2tb[ss] != 'T':
+                    print ss, alleles, ss2tb[ss]
+            elif alleles == 'T/C' or alleles == 'C/T' or alleles == 'T/G' or alleles == 'G/T':
+                if ss2tb[ss] != 'B':
+                    print 'here', ss, alleles, ss2tb[ss]
+#    print 'problems', len(problems), len(total)
+
+# def get_TB_for_SNPs():
+#     """For all rs SNPs get TOP|BOTTOM"""
+    
+#     snps = {}
+#     with open('data/dbsnp/SubSNP_top_or_bot.bcp') as f:
+#         for line in f:
+#             (snp, tb, stuff, datetime) = line.split('\t')
+#             snps['rs' + snp] = tb
+#     return snps
                 
 def get_TB_strand_for_SNPs():
     """For all rs SNPs, get TOP|BOTTOM and +/'"""
@@ -157,9 +217,15 @@ def convert_snpchip(snpchip_file):
                 if call:
                     print('%s\t%s' % (Name, '/'.join(call)))
 def main():
-    get_TB_strand_for_SNPs()
-    get_genotype_for_SNPs()
-    convert_snpchip('data/snp_chip/yuiri_normal')
+    """Entry point"""
+
+    rs2ss, ss = check_dbsnp_illumina()
+    ss2tb = get_TB_for_SNPs(ss)
+    check_TB_problems(rs2ss, ss2tb)
+
+    # get_TB_strand_for_SNPs()
+    # get_genotype_for_SNPs()
+    # convert_snpchip('data/snp_chip/yuiri_normal')
 
 if __name__ == '__main__':
     main()
