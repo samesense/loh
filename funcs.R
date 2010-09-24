@@ -73,3 +73,9 @@ test_bar<-function(afile){
 data<-read.delim(afile,header=TRUE,sep='\t')
 ggplot(data)
 }
+
+snpchip_exome_cmp <- function(afile)
+{
+data <- read.delim(afile,header=TRUE,sep='\t')
+ggplot() + geom_point(data=data, map=aes(x=Exome_Quality,y=Percent_Right)) + facet_grid(Exome~Sample) + opts(legend.position='none')
+}

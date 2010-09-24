@@ -24,7 +24,7 @@ def check_nuc(snpchip, exome, snp):
         #     else:
         #         return False
         else:
-            print snp_base, exome
+            #print snp_base, exome
             return False
 
 def cmp_snpchip(cancer_exome_snps, normal_exome_snps, flip):

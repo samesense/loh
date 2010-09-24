@@ -1,6 +1,11 @@
 """Functions called multiple times"""
 from collections import defaultdict
 
+def my_round(x, base):
+    """Round number x to any base"""
+
+    return int(base * round(float(x)/base))    
+
 def flip_bases(bases):
     """Take the complement of these two bases. Order does not matter"""
 
