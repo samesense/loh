@@ -1,4 +1,5 @@
 """Functions called multiple times"""
+from collections import defaultdict
 
 def flip_bases(bases):
     """Take the complement of these two bases. Order does not matter"""
@@ -33,6 +34,12 @@ def bases2het(bases):
         return 'K'
 
 def init_zero(): return 0
+
+def init_zero_lists(): return [0,0]
+
+def init_zero_paired_list(): 
+    return {'T':defaultdict(init_zero_lists),
+            'N':defaultdict(init_zero_lists)}
 
 def check_input(afile):
     """See if there is data in this file"""

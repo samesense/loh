@@ -1,7 +1,7 @@
 """Tools for getting RS SNPs from NCBI,
    and figuring out nucleutides from
    Illumina rs# AB calls"""
-import os, random, sys
+import os, random, sys, global_settings
 
 random.seed()
 
@@ -58,7 +58,8 @@ def check_dbsnp_illumina():
                 ss = sp[0]
                 alleles = sp[2]
                 rs = sp[4]
-                flip_bases = sp[5]
+                ss2rs_orien = sp[5]
+                rs2genome_orien = sp[10]
                 assembly = sp[11]
                 if assembly == 'GRCh37':
                     if rs in rs2ss:
@@ -66,7 +67,12 @@ def check_dbsnp_illumina():
                             problems[rs] = True
                             #print 'problem', ss, rs, rs2ss[rs]
                     else:
-                        rs2ss[rs] = (ss, alleles, flip_bases)
+                        flip_bases = False
+                        if ss2rs_orien == '1' or rs2genome_orien == '1':
+                            if not (ss2rs_orien == '1' and 
+                                    rs2genome_orien == '1'):
+                                flip_bases = True
+                        rs2ss[rs] = [ss, alleles, flip_bases]
     ss = {}
     for rs in problems:
         del rs2ss[rs]
@@ -83,6 +89,8 @@ def check_TB_problems(rs2ss, ss2tb):
         ss, alleles, flip_bases = rs2ss[rs]
         if ss in ss2tb:
             #total[ss] = True
+            # append TB
+            rs2ss[rs].append(ss2tb[ss])
             if alleles == 'A/G' or alleles == 'G/A' or alleles == 'A/C' or alleles == 'C/A':
                 if ss2tb[ss] != 'T':
                     print ss, alleles, ss2tb[ss]
@@ -139,6 +147,15 @@ def get_genotype_for_SNPs():
                         outf.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %
                                    (snp, chr, st, stp, orient, tb, genotype))
 
+def flip_if_needed(alleleA, alleleB, flip):
+    """Take the complement if needed"""
+
+    if flip:
+        return (global_settings.comp[alleleA], 
+                global_setting.coms[alleleB])
+    else:
+        return (alleleA, alleleB)
+
 def get_allele_for_genotype(snp_info, GType, SNP):
     """Given Illumina's call, find the nucleutodes"""
 
@@ -148,7 +165,7 @@ def get_allele_for_genotype(snp_info, GType, SNP):
     else:
         alleleA = ''
         alleleB = ''
-        (chr, st, stp, orient, tb, alleles) = snp_info
+        (ss, alleles, flip_bases, tb) = snp_info
         if tb == 'T':
             if alleles == 'A/G' or alleles == 'G/A':
                 alleleA = 'A'
@@ -186,42 +203,45 @@ def get_allele_for_genotype(snp_info, GType, SNP):
 
         if alleleB and alleleB:
             if GType == 'AA':
-                return (alleleA, alleleA)
+                return flip_if_needed(alleleA, alleleA, flip_bases)
             elif GType == 'AB':
-                return (alleleA, alleleB)
+                return flip_if_needed(alleleA, alleleB, flip_bases)
             elif GType == 'BB':
-                return (alleleB, alleleB)
+                return flip_if_needed(alleleB, alleleB, flip_bases)
             else:
                 sys.stderr.write('err2 ' + GType + '\n')
                 return ''
                 #raise ValueError
     
-def convert_snpchip(snpchip_file):
+def convert_snpchip(snpchip_file, rs2ss_info):
     """Take Illumina's AB calls and convert to nucleotides"""
 
-    snp_info = {}
-    with open('working/snps_full') as f:
-        for line in f:
-            (snp, chr, st, stp, 
-             orient, tb, alleles) = line.strip().split('\t')
-            snp_info[snp] = (chr, st, stp, 
-                             orient, tb, alleles)
+    # snp_info = {}
+    # with open('working/snps_full') as f:
+    #     for line in f:
+    #         (snp, chr, st, stp, 
+    #          orient, tb, alleles) = line.strip().split('\t')
+    #         snp_info[snp] = (chr, st, stp, 
+    #                          orient, tb, alleles)
     with open(snpchip_file) as f:
         f.readline()
         for line in f:
             (Index, Name, Address, Chr, Position, GenTrain,
              A, C, G, T, GType, Score, Theta, R) = line.strip().split('\t')
-            if Name in snp_info:
-                call = get_allele_for_genotype(snp_info[Name],
+            if Name in rs2ss_info:
+                call = get_allele_for_genotype(rs2ss_info[Name],
                                                GType, Name)
                 if call:
                     print('%s\t%s' % (Name, '/'.join(call)))
+
 def main():
     """Entry point"""
 
     rs2ss, ss = check_dbsnp_illumina()
     ss2tb = get_TB_for_SNPs(ss)
     check_TB_problems(rs2ss, ss2tb)
+    convert_snpchip('data/snp_chip/yuiri_normal',
+                    rs2ss)
 
     # get_TB_strand_for_SNPs()
     # get_genotype_for_SNPs()

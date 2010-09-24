@@ -17,12 +17,12 @@ def check_nuc(snpchip, exome, snp):
             return True
         elif (snp_base == 'Y' and exome == 'R') or (snp_base == 'R' and exome == 'Y'):
             return True
-        elif (snp_base in ('A', 'C', 'T', 'G')) and (exome in ('A', 'C', 'T', 'G')):
-            if global_settings.comp[snp_base] == exome:
-                print 'flip', snp_base, exome, snp
-                return True
-            else:
-                return False
+        # elif (snp_base in ('A', 'C', 'T', 'G')) and (exome in ('A', 'C', 'T', 'G')):
+        #     if global_settings.comp[snp_base] == exome:
+        #         print 'flip', snp_base, exome, snp
+        #         return True
+        #     else:
+        #         return False
         else:
             print snp_base, exome
             return False
@@ -60,7 +60,7 @@ def cmp_snpchip(cancer_exome_snps, normal_exome_snps, flip):
             elif 'NC' not in line:
                 missing[snp] = True
     print 'cancer/normal, hit/miss'
-    print cancer_eval, float(cancer_eval[0]/float(sum(cancer_eval))), normal_eval, float(normal_eval[0])/float(sum(normal_eval))
+    print cancer_eval, float(cancer_eval[0]/float(sum(cancer_eval))), normal_eval, float(100)*float(normal_eval[0])/float(sum(normal_eval))
     print 'missing', len(missing)
     #print missing
 
