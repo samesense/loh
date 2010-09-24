@@ -152,7 +152,7 @@ def flip_if_needed(alleleA, alleleB, flip):
 
     if flip:
         return (global_settings.comp[alleleA], 
-                global_setting.coms[alleleB])
+                global_settings.comp[alleleB])
     else:
         return (alleleA, alleleB)
 
@@ -199,7 +199,9 @@ def get_allele_for_genotype(snp_info, GType, SNP):
                 sys.stderr.write('err1 ' + SNP + ' ' + str(snp_info) + '\n')
                 #raise ValueError    
         else:
-            raise ValueError
+            # why is t/b missing???
+            sys.stderr.write('err1 ' + SNP + ' ' + str(snp_info) + '\n')
+            #raise ValueError
 
         if alleleB and alleleB:
             if GType == 'AA':
@@ -232,7 +234,8 @@ def convert_snpchip(snpchip_file, rs2ss_info):
                 call = get_allele_for_genotype(rs2ss_info[Name],
                                                GType, Name)
                 if call:
-                    print('%s\t%s' % (Name, '/'.join(call)))
+                    print('%s\t%s\t%s' % 
+                          (Name, GenTrain, '/'.join(call)))
 
 def main():
     """Entry point"""
