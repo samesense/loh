@@ -240,10 +240,11 @@ def convert_snpchip(snpchip_file, rs2ss_info):
 def main():
     """Entry point"""
 
+    file = sys.argv[1] # 'data/snp_chip/yuiri_tumor'
     rs2ss, ss = check_dbsnp_illumina()
     ss2tb = get_TB_for_SNPs(ss)
     check_TB_problems(rs2ss, ss2tb)
-    convert_snpchip('data/snp_chip/yuiri_tumor',
+    convert_snpchip(file,
                     rs2ss)
 
     # get_TB_strand_for_SNPs()

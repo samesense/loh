@@ -8,26 +8,33 @@ import global_settings, utils
 def snp_exomeSeq_check():
     """Look at the correspondence between SNP and exome-seq calls"""
 
-    data_dir = 'data/dbsnp/'
+    # data_dir = 'data/dbsnp/'
 
-    # get data from NCBI
-    ncbi_ftp = 'ftp.ncbi.nih.gov::'
-    sh('rsync -av %ssnp/organisms/human_9606/database/organism_data/SubSNP_top_or_bot.bcp.gz %s' % (ncbi_ftp, data_dir))
-    sh('rsync -av --copy-links %sgenomes/H_sapiens/mapview/seq_snp.md.gz %s' % 
-       (ncbi_ftp, data_dir))
-    sh('gunzip -fq %s' % os.path.join(data_dir, 'SubSNP_top_or_bot.bcp.gz'))
-    sh('gunzip -fq %s' % os.path.join(data_dir, 'seq_snp.md.gz'))
+    # # get data from NCBI
+    # ncbi_ftp = 'ftp.ncbi.nih.gov::'
+    # sh('rsync -av %ssnp/organisms/human_9606/database/organism_data/SubSNP_top_or_bot.bcp.gz %s' % (ncbi_ftp, data_dir))
+    # sh('rsync -av --copy-links %sgenomes/H_sapiens/mapview/seq_snp.md.gz %s' % 
+    #    (ncbi_ftp, data_dir))
+    # sh('gunzip -fq %s' % os.path.join(data_dir, 'SubSNP_top_or_bot.bcp.gz'))
+    # sh('gunzip -fq %s' % os.path.join(data_dir, 'seq_snp.md.gz'))
 
-    chrs = [str(x) for x in range(1,22)]
-    chrs.extend(['Y', 'X'])
-    for chr in chrs:
-        sh('rsync -av %ssnp/organisms/human_9606/rs_fasta/rs_ch%s.fas.gz %s' 
-           % (ncbi_ftp, chr, data_dir))
-        sh('gunzip -fq %s' % os.path.join(data_dir, 'rs_ch%s.fas.gz' % chr))
-        sh("grep '>' %s > %s" %
-           (os.path.join(data_dir, 'rs_ch%s.fas' % chr),
-            os.path.join(data_dir, 'chr%s' % chr)))
-    
+    # chrs = [str(x) for x in range(1,22)]
+    # chrs.extend(['Y', 'X'])
+    # for chr in chrs:
+    #     sh('rsync -av %ssnp/organisms/human_9606/rs_fasta/rs_ch%s.fas.gz %s' 
+    #        % (ncbi_ftp, chr, data_dir))
+    #     sh('gunzip -fq %s' % os.path.join(data_dir, 'rs_ch%s.fas.gz' % chr))
+    #     sh("grep '>' %s > %s" %
+    #        (os.path.join(data_dir, 'rs_ch%s.fas' % chr),
+    #         os.path.join(data_dir, 'chr%s' % chr)))
+    sh('python snp.py data/snp_chip/yuiri_tumor '
+       + '1> working/yuiri_cancer.call '
+       + '2> working/yuiri_cancer.call.err')
+    sh('python snp.py data/snp_chip/yuiri_normal '
+       + '1> working/yuiri_normal.call '
+       + '2> working/yuiri_normal.call.err')
+    sh('python cmp_snpchip_exomeseq.py')
+
 @task
 def mixture():
     """Make CNV/LOH and mixture plots"""
