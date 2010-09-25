@@ -12,20 +12,23 @@ def check_nuc(snpchip, exome, snp):
     snp_base = utils.bases2het(snpchip)
     if snp_base == exome:
         return True
+    elif snp_base in global_settings.het_bases or exome in global_settings.het_bases:
+        return 'NA'
     else:
-        if (snp_base == 'M' and exome == 'K') or (snp_base == 'K' and exome == 'M'):
-            return True
-        elif (snp_base == 'Y' and exome == 'R') or (snp_base == 'R' and exome == 'Y'):
-            return True
+        return False
+        # if (snp_base == 'M' and exome == 'K') or (snp_base == 'K' and exome == 'M'):
+        #     return True
+        # elif (snp_base == 'Y' and exome == 'R') or (snp_base == 'R' and exome == 'Y'):
+        #     return True
         # elif (snp_base in ('A', 'C', 'T', 'G')) and (exome in ('A', 'C', 'T', 'G')):
         #     if global_settings.comp[snp_base] == exome:
         #         print 'flip', snp_base, exome, snp
         #         return True
         #     else:
         #         return False
-        else:
+        #else:
             #print snp_base, exome
-            return False
+        #    return False
 
 def cmp_snpchip(cancer_exome_snps, normal_exome_snps, flip):
     """Count right/wrong calls. Flip snpchip bases as needed.
