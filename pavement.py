@@ -5,6 +5,35 @@ sys.path.append('./')
 import global_settings, utils
 
 @task
+def novel_snps():
+    """SNPs not in lifton or MU2A output"""
+
+    os.system('mkdir -p working/novel/')
+    # inherited
+    sh('python get_novel_snps.py '
+       + 'working/mu2a/inherited.input.sort '
+       + 'working/mu2a/inherited.mu2a_output '
+       + '1> working/mu2a/inherited.novel_dbsnp '
+       + '2> working/mu2a/inherited.novel_lifton')
+    sh('python novel_summary.py '
+       + 'working/mu2a/inherited.mu2a_input '
+       + 'working/mu2a/inherited.novel_dbsnp '
+       + 'working/mu2a/inherited.novel_lifton '
+       + '> working/novel/inherited.tab')
+    
+    # somatic
+    sh('python get_novel_snps.py '
+       + 'working/mu2a/somatic.input.sort '
+       + 'working/mu2a/somatic.mu2a_output '
+       + '1> working/mu2a/somatic.novel_dbsnp '
+       + '2> working/mu2a/somatic.novel_lifton')
+    sh('python novel_summary.py '
+       + 'working/mu2a/somatic.mu2a_input '
+       + 'working/mu2a/somatic.novel_dbsnp '
+       + 'working/mu2a/somatic.novel_lifton '
+       + '> working/novel/somatic.tab')
+
+@task
 def snp_exomeSeq_check():
     """Look at the correspondence between SNP and exome-seq calls"""
 
