@@ -34,6 +34,14 @@ def novel_snps():
        + '> working/novel/somatic.tab')
 
 @task
+def snp_rna_check():
+    """Look at correspondence between SNP chip and rna-seq calls"""
+
+    sh('python snp.py data/snp_chip/yurif '
+       + '1> working/yurif_cancer.call '
+       + '2> working/yurif_cancer.call.err')
+
+@task
 def snp_exomeSeq_check():
     """Look at the correspondence between SNP and exome-seq calls"""
 
